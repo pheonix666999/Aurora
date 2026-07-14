@@ -1,0 +1,7 @@
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION.txt" AURORA_VERSION LIMIT_COUNT 1)
+string(STRIP "${AURORA_VERSION}" AURORA_VERSION)
+if(NOT AURORA_VERSION MATCHES "^[0-9]+\\.[0-9]+\\.[0-9]+$")
+    message(FATAL_ERROR "VERSION.txt must contain a semantic version (x.y.z)")
+endif()
+set(PROJECT_VERSION "${AURORA_VERSION}")
+

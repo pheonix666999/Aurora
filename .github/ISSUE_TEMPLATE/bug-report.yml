@@ -1,0 +1,22 @@
+name: Bug report
+description: Report a reproducible Aurora Broadcast Processor problem
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: input
+    id: version
+    attributes: { label: Product version }
+    validations: { required: true }
+  - type: input
+    id: host
+    attributes: { label: Host and version }
+    validations: { required: true }
+  - type: textarea
+    id: steps
+    attributes: { label: Reproduction steps }
+    validations: { required: true }
+  - type: textarea
+    id: result
+    attributes: { label: Expected and actual result }
+    validations: { required: true }
+

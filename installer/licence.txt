@@ -1,0 +1,4 @@
+Aurora Broadcast Processor
+Copyright (c) 2026 Ammar Audio Labs. All rights reserved.
+
+This development package is provided without warranty. Distribution is permitted only after the product owner has selected and complied with an applicable JUCE 8 licence (commercial JUCE licence or AGPLv3) and all third-party terms described in LICENSE_NOTICE.md and THIRD_PARTY_NOTICES.md.

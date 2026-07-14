@@ -1,0 +1,1 @@
+[CmdletBinding()]param([switch]$Extended);$ErrorActionPreference='Stop';$root=Split-Path -Parent $PSScriptRoot;$env:AURORA_EXTENDED_TESTS=if($Extended){'1'}else{'0'};ctest --test-dir (Join-Path $root 'build/windows-x64') -C Release --output-on-failure

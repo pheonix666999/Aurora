@@ -1,0 +1,1 @@
+[CmdletBinding()]param([Parameter(Mandatory)][string]$Version,[switch]$RequireInstaller);$ErrorActionPreference='Stop';& (Join-Path $PSScriptRoot 'package-release.ps1') -Version $Version -RequireInstaller:$RequireInstaller -TestResult PASSED

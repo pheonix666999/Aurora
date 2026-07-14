@@ -1,0 +1,58 @@
+name: Publish GitHub Release
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing semantic version tag (vX.Y.Z)
+        required: true
+        type: string
+      release_run_id:
+        description: Successful Build Windows Release run ID
+        required: true
+        type: string
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+      - name: Validate tag and source run
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ('${{ inputs.tag }}' -notmatch '^v\d+\.\d+\.\d+$') { throw 'Invalid tag' }
+          git show-ref --verify --quiet "refs/tags/${{ inputs.tag }}"; if ($LASTEXITCODE -ne 0) { throw 'Tag does not exist' }
+          $run = gh api "repos/${{ github.repository }}/actions/runs/${{ inputs.release_run_id }}" | ConvertFrom-Json
+          if ($run.name -ne 'Build Windows Release' -or $run.conclusion -ne 'success' -or $run.head_sha -ne (git rev-list -n 1 '${{ inputs.tag }}')) { throw 'Run is not a successful release build for this exact tag commit' }
+          if (gh release view '${{ inputs.tag }}' 2>$null) { throw 'Release already exists; refusing overwrite' }
+      - name: Download exact verified release artifact
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh run download '${{ inputs.release_run_id }}' --dir dist/download
+      - name: Verify downloaded checksums and assets
+        shell: pwsh
+        run: |
+          $dir = Get-ChildItem dist/download -Directory | Select-Object -First 1
+          $checks = Get-ChildItem $dir.FullName -Filter '*Checksums*.txt' | Select-Object -First 1
+          if (-not $checks) { throw 'Checksum file missing' }
+          foreach ($line in Get-Content $checks.FullName) { if ($line -notmatch '^([0-9a-f]{64})  (.+)$') { throw 'Bad checksum format' }; if ((Get-FileHash (Join-Path $dir.FullName $Matches[2]) -Algorithm SHA256).Hash.ToLowerInvariant() -ne $Matches[1]) { throw "Checksum failed: $($Matches[2])" } }
+      - name: Create draft, upload all public assets, then publish
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $dir = Get-ChildItem dist/download -Directory | Select-Object -First 1
+          $prerelease = '${{ inputs.tag }}' -match '-'
+          $ghArgs = @('release','create','${{ inputs.tag }}','--draft','--verify-tag','--title',"Aurora Broadcast Processor ${{ inputs.tag }}",'--notes-file','CHANGELOG.md')
+          if ($prerelease) { $ghArgs += '--prerelease' }
+          & gh @ghArgs
+          if ($LASTEXITCODE -ne 0) { throw 'Draft release creation failed' }
+          $assets = Get-ChildItem $dir.FullName -File | Where-Object { $_.Name -notmatch 'TestResults' }
+          & gh release upload '${{ inputs.tag }}' @($assets.FullName)
+          if ($LASTEXITCODE -ne 0) { throw 'Asset upload failed; release remains draft' }
+          gh release edit '${{ inputs.tag }}' --draft=false

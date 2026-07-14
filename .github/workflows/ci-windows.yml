@@ -1,0 +1,74 @@
+name: Windows CI
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ci-windows-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build-test:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Runner and toolchain information
+        shell: pwsh
+        run: |
+          Get-ComputerInfo | Select-Object WindowsProductName, WindowsVersion, OsArchitecture
+          git --version
+          cmake --version
+          & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -property installationVersion
+      - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: build/windows-x64/_deps
+          key: juce-${{ runner.os }}-x64-msvc-8.0.14-${{ hashFiles('CMakeLists.txt', 'cmake/*.cmake') }}
+      - name: Configure
+        shell: pwsh
+        run: ./scripts/github-configure.ps1
+      - name: Build tests, VST3, and standalone
+        shell: pwsh
+        run: ./scripts/github-build.ps1
+      - name: Run tests
+        shell: pwsh
+        run: ./scripts/github-test.ps1
+      - name: Verify required CI binaries
+        shell: pwsh
+        run: ./scripts/verify-release-output.ps1 -BuildOnly
+      - name: Write CI metadata
+        if: always()
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist/ci | Out-Null
+          @{ product='Aurora Broadcast Processor'; version=(Get-Content VERSION.txt -Raw).Trim(); commit='${{ github.sha }}'; result='${{ job.status }}'; juce='8.0.14' } | ConvertTo-Json | Set-Content dist/ci/BUILD_INFO.json
+          "Commit: ${{ github.sha }}`nResult: ${{ job.status }}" | Set-Content dist/ci/TEST_SUMMARY.txt
+      - name: Stage CI artifact
+        if: success()
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist/ci/VST3,dist/ci/Standalone,dist/ci/Documentation | Out-Null
+          Copy-Item "build/windows-x64/AuroraBroadcastProcessor_artefacts/Release/VST3/Aurora Broadcast Processor.vst3" dist/ci/VST3 -Recurse
+          Copy-Item "build/windows-x64/AuroraBroadcastProcessor_artefacts/Release/Standalone/Aurora Broadcast Processor.exe" dist/ci/Standalone
+          Copy-Item README.md,docs/INSTALLATION.md,docs/HOST_TESTING.md dist/ci/Documentation
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: success()
+        with:
+          name: AuroraBroadcastProcessor-Windows-x64-CI
+          path: dist/ci
+          if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: AuroraBroadcastProcessor-Windows-x64-Diagnostics
+          path: |
+            build/windows-x64/CMakeFiles/CMakeConfigureLog.yaml
+            build/windows-x64/Testing
+            docs/ENVIRONMENT.md
+            dist/ci/TEST_SUMMARY.txt
+          if-no-files-found: warn
+          retention-days: 14
+

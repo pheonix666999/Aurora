@@ -1,0 +1,3079 @@
+You are a senior C++ audio-DSP engineer, JUCE developer, Windows plug-in engineer, build engineer, QA engineer, and GitHub Actions release engineer.
+
+Build a complete, functioning, professionally structured broadcast audio processor.
+
+Do not create only an interface mock-up.
+
+The application must:
+
+- Process real audio
+- Compile successfully
+- Produce a Windows x64 VST3
+- Produce a Windows x64 standalone application
+- Save and restore its complete state
+- Include functional factory and user presets
+- Include real DSP metering
+- Include a real-time spectrum analyzer
+- Include an interactive EQ
+- Include automated tests
+- Include GitHub Actions CI
+- Include GitHub Actions release packaging
+- Produce downloadable output files
+- Produce a Windows installer
+- Produce SHA-256 checksums
+- Produce a release manifest
+- Include complete documentation
+
+Proceed autonomously.
+
+Do not stop after creating a plan.
+
+Do not leave essential functionality as TODO comments, placeholders, stubs, fake meters, or disconnected controls.
+
+When a required tool is unavailable, complete everything that can be completed and document the exact blocker honestly.
+
+Never fabricate build, test, host compatibility, validator, packaging, or GitHub Actions results.
+
+# 1. CURRENT WORKSPACE
+
+Treat the currently opened VS Code workspace as:
+
+- The project root
+- The repository root
+- The CMake source directory
+- The location where all project files must be created
+
+Do not create another parent project directory.
+
+Do not create a nested `AuroraBroadcastProcessor` directory inside the current workspace.
+
+Do not move the project to another location.
+
+Do not use a hard-coded absolute local project path.
+
+All paths inside:
+
+- Source code
+- CMake files
+- PowerShell scripts
+- Documentation
+- GitHub Actions workflows
+- Tests
+- Packaging scripts
+- Installer files
+
+must be relative to the repository root where possible.
+
+In PowerShell scripts, determine the repository root using `$PSScriptRoot`.
+
+In GitHub Actions, use relative paths or `${{ github.workspace }}`.
+
+Do not expose the developer’s:
+
+- Local username
+- Local project path
+- Home directory
+- Machine-specific directories
+
+inside generated documentation, packages, manifests, binaries, logs intended for distribution, or GitHub Release assets.
+
+Inspect all existing files before modifying them.
+
+Preserve unrelated user work.
+
+Preserve `prompt.txt`.
+
+Do not include `prompt.txt` in customer packages, installers, workflow artifacts intended for customers, or GitHub Releases.
+
+If Git is not initialized, initialize it in the current workspace.
+
+If Git is already initialized, preserve its history, remotes, branches, and configuration.
+
+Create a suitable `.gitignore` covering:
+
+- Visual Studio
+- Visual Studio Code local settings
+- CMake
+- Ninja
+- JUCE generated files
+- Build directories
+- Temporary files
+- Compiler intermediates
+- Debug binaries
+- Installer output
+- Distribution output where appropriate
+- Test output
+- Private keys
+- Certificates
+- Environment files
+- User presets
+- Local audio test files
+- GitHub Actions local testing files
+- Operating-system metadata
+
+Do not ignore source-controlled factory presets, documentation, workflow files, or installer source files.
+
+# 2. PROJECT IDENTITY
+
+Use the following initial identity:
+
+Product name:
+Aurora Broadcast Processor
+
+Short product name:
+Aurora BP
+
+Internal project name:
+AuroraBroadcastProcessor
+
+Company name:
+Ammar Audio Labs
+
+Manufacturer code:
+AALB
+
+Plug-in code:
+AUBP
+
+Bundle identifier:
+com.ammaraudio.aurorabroadcastprocessor
+
+Initial version:
+0.1.0
+
+Architecture:
+Windows x64
+
+Primary plug-in format:
+VST3
+
+Secondary format:
+Standalone application
+
+Plug-in category:
+Audio effect
+
+Create a central configuration location, such as:
+
+Source/Config/ProductConfig.h
+
+Centralize:
+
+- Product name
+- Company name
+- Version
+- Plug-in identifiers
+- Bundle identifier
+- Website placeholder
+- Copyright text
+- Support email placeholder
+- Default UI size
+- Product colour palette
+
+Do not scatter branding strings and version values across unrelated files.
+
+The project version must be controlled from one authoritative location and propagated into:
+
+- CMake
+- VST3 metadata
+- Standalone metadata
+- Installer
+- ZIP filenames
+- Release manifest
+- VERSION.txt
+- BUILD_INFO.json
+- GitHub Release assets
+
+# 3. PRODUCT PURPOSE
+
+Create an original broadcast sound processor for:
+
+- Internet radio stations
+- Digital radio streams
+- Radio automation software
+- Live broadcasting
+- Music programming
+- Presenter and music mixes
+- Continuous station output
+- Pre-encoder processing
+- Online streaming systems
+
+The intended result should sound:
+
+- Controlled
+- Energetic
+- Polished
+- Modern
+- Consistent
+- Loud without obvious distortion
+- Bright without excessive harshness
+- Bass-focused without muddiness
+- Dense without sounding crushed
+- Suitable for a contemporary European-style digital station presentation
+
+The processor should help reduce major tonal and loudness differences between tracks.
+
+It must not claim to exactly reproduce:
+
+- Stereo Tool
+- Omnia
+- Orban
+- Breakaway
+- Any named commercial station
+- Any proprietary commercial processing system
+
+Do not copy:
+
+- Commercial source code
+- Commercial presets
+- Commercial interface layouts
+- Commercial graphics
+- Commercial branding
+- Commercial parameter names that are proprietary
+- Copyrighted screenshots
+- Protected algorithms
+
+Use commercial broadcast processors only as high-level inspiration for the category of functionality.
+
+This product is a digital audio processor.
+
+It is not:
+
+- An FM transmitter
+- RF equipment
+- An FM stereo generator
+- An RDS encoder
+- A transmitter compliance system
+- A certified loudness compliance solution
+- A replacement for legally required transmission hardware
+- A guaranteed true-peak compliance system unless formally implemented and validated
+
+Do not enable FM pre-emphasis by default.
+
+The initial target is digital and internet radio.
+
+# 4. TECHNOLOGY
+
+Use:
+
+- Modern C++
+- C++20 where supported
+- JUCE
+- CMake
+- Visual Studio 2022
+- MSVC x64
+- PowerShell
+- Git
+- GitHub Actions
+- Inno Setup
+- CTest or a dedicated JUCE-based test target
+
+Do not require Projucer.
+
+Use a stable JUCE 8 release.
+
+At implementation time:
+
+1. Inspect the available stable JUCE 8 tags.
+2. Select an exact stable release.
+3. Pin it to an exact tag or commit.
+4. Record the exact version in documentation and the release manifest.
+5. Do not use a moving branch.
+6. Do not use a JUCE preview branch.
+7. Verify the applicable JUCE commercial or open-source licence before distribution.
+
+Use CMake FetchContent or a well-documented Git submodule strategy.
+
+Prefer FetchContent unless there is a strong technical reason otherwise.
+
+Minimum CMake version:
+
+3.22 or later
+
+Generate these targets:
+
+1. Aurora Broadcast Processor VST3 x64
+2. Aurora Broadcast Processor standalone x64
+3. Aurora Broadcast Processor unit-test executable
+4. Any required packaging helper targets
+5. Optional benchmark or diagnostic targets when justified
+
+Release builds must use optimization suitable for real-time audio.
+
+Debug builds should retain useful assertions and diagnostics.
+
+# 5. ENVIRONMENT INSPECTION
+
+Before implementing the project, inspect the current environment.
+
+Check:
+
+- Operating system
+- Git
+- CMake
+- PowerShell
+- Visual Studio 2022
+- MSVC x64 compiler
+- Windows SDK
+- Ninja
+- Inno Setup
+- GitHub CLI
+- Git repository status
+- Git remotes
+- JUCE dependency availability
+- VST3 validator availability
+- JUCE AudioPluginHost availability
+- RadioBOSS installation
+- NextKast installation
+- REAPER installation
+- Any other VST3 test host
+
+Write the actual results to:
+
+docs/ENVIRONMENT.md
+
+Do not stop solely because an optional host or validator is missing.
+
+If a required build tool is missing:
+
+- Create the full project source
+- Create all scripts
+- Create all workflows
+- Create documentation
+- Record the exact blocker
+- Provide exact installation instructions
+- Do not pretend the project compiled
+
+Create:
+
+scripts/check-environment.ps1
+docs/INSTALL_PREREQUISITES.md
+
+The environment script must return a non-zero status when an essential build dependency is unavailable.
+
+# 6. PROJECT STRUCTURE
+
+Create a clean structure based on the following:
+
+.github/
+├── workflows/
+│   ├── ci-windows.yml
+│   ├── build-release-windows.yml
+│   └── publish-release.yml
+├── ISSUE_TEMPLATE/
+│   └── bug-report.yml
+└── pull_request_template.md
+
+cmake/
+├── CompilerWarnings.cmake
+├── ProjectOptions.cmake
+├── Dependencies.cmake
+├── Packaging.cmake
+└── Versioning.cmake
+
+Source/
+├── PluginProcessor.h
+├── PluginProcessor.cpp
+├── PluginEditor.h
+├── PluginEditor.cpp
+│
+├── Config/
+│   ├── ProductConfig.h
+│   ├── ColourPalette.h
+│   └── ParameterIDs.h
+│
+├── Parameters/
+│   ├── ParameterLayout.h
+│   ├── ParameterLayout.cpp
+│   ├── ParameterRanges.h
+│   ├── ParameterSnapshot.h
+│   └── ParameterSnapshot.cpp
+│
+├── DSP/
+│   ├── BroadcastProcessorEngine.h
+│   ├── BroadcastProcessorEngine.cpp
+│   ├── InputStage.h
+│   ├── InputStage.cpp
+│   ├── AutoGainController.h
+│   ├── AutoGainController.cpp
+│   ├── ParametricEQ.h
+│   ├── ParametricEQ.cpp
+│   ├── FourBandCrossover.h
+│   ├── FourBandCrossover.cpp
+│   ├── MultibandDynamics.h
+│   ├── MultibandDynamics.cpp
+│   ├── StereoProcessor.h
+│   ├── StereoProcessor.cpp
+│   ├── HarmonicEnhancer.h
+│   ├── HarmonicEnhancer.cpp
+│   ├── BroadcastClipper.h
+│   ├── BroadcastClipper.cpp
+│   ├── BroadcastLimiter.h
+│   ├── BroadcastLimiter.cpp
+│   ├── MeteringEngine.h
+│   ├── MeteringEngine.cpp
+│   ├── DSPUtilities.h
+│   └── DSPUtilities.cpp
+│
+├── Analysis/
+│   ├── LockFreeAudioFIFO.h
+│   ├── SpectrumDataProvider.h
+│   ├── SpectrumDataProvider.cpp
+│   ├── FFTAnalyzer.h
+│   ├── FFTAnalyzer.cpp
+│   └── LevelData.h
+│
+├── Presets/
+│   ├── PresetManager.h
+│   ├── PresetManager.cpp
+│   ├── FactoryPresets.h
+│   ├── FactoryPresets.cpp
+│   └── PresetSchema.h
+│
+├── UI/
+│   ├── AuroraLookAndFeel.h
+│   ├── AuroraLookAndFeel.cpp
+│   ├── MainHeader.h
+│   ├── MainHeader.cpp
+│   ├── SpectrumEQComponent.h
+│   ├── SpectrumEQComponent.cpp
+│   ├── RotaryControl.h
+│   ├── RotaryControl.cpp
+│   ├── VerticalMeter.h
+│   ├── VerticalMeter.cpp
+│   ├── GainReductionMeter.h
+│   ├── GainReductionMeter.cpp
+│   ├── CorrelationMeter.h
+│   ├── CorrelationMeter.cpp
+│   ├── AGCPanel.h
+│   ├── AGCPanel.cpp
+│   ├── MultibandPanel.h
+│   ├── MultibandPanel.cpp
+│   ├── StereoPanel.h
+│   ├── StereoPanel.cpp
+│   ├── LimiterPanel.h
+│   ├── LimiterPanel.cpp
+│   ├── TooltipOverlay.h
+│   └── TooltipOverlay.cpp
+│
+└── Utilities/
+    ├── VersionedState.h
+    ├── VersionedState.cpp
+    ├── FileLocations.h
+    ├── FileLocations.cpp
+    ├── ScopedValueSmoother.h
+    └── DebugLogger.h
+
+Tests/
+├── CMakeLists.txt
+├── TestMain.cpp
+├── ParameterTests.cpp
+├── StateTests.cpp
+├── PresetTests.cpp
+├── DSPTests.cpp
+├── CrossoverTests.cpp
+├── StereoTests.cpp
+├── LimiterTests.cpp
+├── LifecycleTests.cpp
+└── StressTests.cpp
+
+Resources/
+├── Icons/
+├── Fonts/
+└── Presets/
+
+scripts/
+├── check-environment.ps1
+├── bootstrap.ps1
+├── configure.ps1
+├── build-debug.ps1
+├── build-release.ps1
+├── run-tests.ps1
+├── validate-vst3.ps1
+├── install-vst3-local.ps1
+├── uninstall-vst3-local.ps1
+├── package-release.ps1
+├── github-configure.ps1
+├── github-build.ps1
+├── github-test.ps1
+├── github-package.ps1
+├── calculate-checksums.ps1
+├── generate-release-manifest.ps1
+└── verify-release-output.ps1
+
+installer/
+├── AuroraBroadcastProcessor.iss
+├── installer-readme.txt
+└── licence.txt
+
+docs/
+├── ENVIRONMENT.md
+├── INSTALL_PREREQUISITES.md
+├── ARCHITECTURE.md
+├── DSP_DESIGN.md
+├── PARAMETERS.md
+├── PRESETS.md
+├── BUILDING.md
+├── INSTALLATION.md
+├── HOST_TESTING.md
+├── PERFORMANCE.md
+├── KNOWN_LIMITATIONS.md
+├── LEGACY_FORMAT_OPTIONS.md
+├── GITHUB_ACTIONS.md
+├── RELEASE_PROCESS.md
+├── ARTIFACTS.md
+└── BUILD_LOG.md
+
+dist/
+build/
+
+Root files:
+
+- CMakeLists.txt
+- CMakePresets.json
+- README.md
+- CHANGELOG.md
+- LICENSE_NOTICE.md
+- THIRD_PARTY_NOTICES.md
+- VERSION.txt
+- .gitignore
+- prompt.txt
+
+The exact structure may be adjusted where technically necessary, but maintain clear separation between:
+
+- DSP
+- UI
+- Parameters
+- Presets
+- Analysis
+- Tests
+- Build scripts
+- Workflows
+- Packaging
+- Documentation
+
+# 7. AUDIO BUS SUPPORT
+
+The plug-in must:
+
+- Operate as an audio effect
+- Support mono input to mono output
+- Support stereo input to stereo output
+- Prefer stereo processing
+- Reject unsupported surround layouts safely
+- Not require MIDI
+- Not generate MIDI
+- Not synthesize audio
+- Preserve silence when silence is provided
+- Handle repeated prepare and release cycles
+- Handle sample-rate changes
+- Handle block-size changes
+- Handle editor creation and destruction repeatedly
+- Handle a host processing audio without opening the editor
+
+Support at least:
+
+- 44,100 Hz
+- 48,000 Hz
+- 88,200 Hz
+- 96,000 Hz
+
+Test these block sizes:
+
+- 32
+- 64
+- 128
+- 256
+- 512
+- 1,024
+- 2,048
+- 4,096 samples
+
+Never assume a fixed block size.
+
+# 8. DSP SIGNAL FLOW
+
+Use this default processing order:
+
+1. Input trim
+2. Invalid-sample sanitation
+3. DC blocker
+4. Optional high-pass filter
+5. Slow automatic gain controller
+6. Six-band parametric EQ
+7. Four-band crossover
+8. Four stereo-linked multiband compressors
+9. Band recombination
+10. Harmonic enhancement
+11. Stereo width and balance processing
+12. Mono-bass processing
+13. Correlation protection
+14. Oversampled soft clipper
+15. Look-ahead limiter
+16. Output trim
+17. Polarity controls
+18. Output metering
+19. Analyzer data capture
+
+The processing chain must be modular.
+
+Every major module must have:
+
+- A bypass parameter
+- Click-free activation and bypass
+- Reset functionality
+- Parameter smoothing where required
+- Dedicated tests where appropriate
+
+Use stereo-linked detection for processes that could otherwise destabilize the stereo image.
+
+# 9. REAL-TIME AUDIO SAFETY
+
+The normal audio callback must not perform:
+
+- Heap allocation
+- File access
+- Preset parsing
+- XML parsing
+- JSON parsing
+- Logging to disk
+- GUI operations
+- Network operations
+- Component creation
+- Large object destruction
+- Blocking locks
+- Waiting on another thread
+
+Prepare all required buffers before processing.
+
+Use:
+
+- Preallocated buffers
+- Atomics
+- Lock-free FIFOs
+- Parameter smoothing
+- `juce::ScopedNoDenormals`
+- Stable finite-value validation
+- Safe DSP reset behaviour
+
+Handle:
+
+- Silence
+- Denormal values
+- Full-scale signals
+- Clipped input
+- NaN values
+- Positive infinity
+- Negative infinity
+- Rapid automation
+- Repeated transport starts and stops
+
+Sanitize invalid samples conservatively.
+
+The processor must never deliberately output NaN or infinity.
+
+# 10. INPUT STAGE
+
+Implement input trim:
+
+Parameter ID:
+inputTrimDb
+
+Range:
+-18 dB to +18 dB
+
+Default:
+0 dB
+
+Implement DC blocking:
+
+Parameter ID:
+dcBlockEnabled
+
+Default:
+Enabled
+
+Implement a bypassable high-pass filter:
+
+Parameter IDs:
+
+- highPassEnabled
+- highPassFrequencyHz
+
+Frequency range:
+15 Hz to 60 Hz
+
+Default:
+25 Hz
+
+Slope:
+12 dB per octave
+
+Smooth filter changes to prevent clicks.
+
+# 11. AUTOMATIC GAIN CONTROLLER
+
+Implement a slow and transparent automatic gain controller before the multiband stage.
+
+Purpose:
+
+- Reduce major differences between quiet and loud tracks
+- Avoid abrupt level changes
+- Avoid reacting aggressively to short transients
+- Avoid raising silence or background noise excessively
+
+Parameters:
+
+agcEnabled
+Default: Enabled
+
+agcTargetDb
+Range: -24 dBFS to -8 dBFS
+Default: -15 dBFS
+
+agcMaxGainDb
+Range: 0 dB to +15 dB
+Default: +9 dB
+
+agcMaxAttenuationDb
+Range: -15 dB to 0 dB
+Default: -9 dB
+
+agcAttackMs
+Range: 100 ms to 2,000 ms
+Default: 500 ms
+
+agcReleaseMs
+Range: 1,000 ms to 12,000 ms
+Default: 4,500 ms
+
+agcGateThresholdDb
+Range: -80 dBFS to -30 dBFS
+Default: -52 dBFS
+
+agcStereoLinkPercent
+Range: 0% to 100%
+Default: 100%
+
+Requirements:
+
+- Use a stable RMS-style detector or technically justified equivalent
+- Avoid raising gain during silence
+- Avoid fast pumping
+- Apply gain smoothly
+- Maintain channel balance
+- Expose current gain adjustment to metering
+- Reset safely
+- Remain stable at all supported sample rates
+
+Do not label the AGC detector as LUFS-compliant unless an actual standards-compliant implementation is added and tested.
+
+# 12. SIX-BAND PARAMETRIC EQ
+
+Implement six interactive EQ bands:
+
+1. Low shelf
+2. Low-mid bell
+3. Mid bell
+4. Presence bell
+5. High-mid bell
+6. High shelf
+
+General gain range:
+
+-12 dB to +12 dB
+
+Bell Q range:
+
+0.25 to 6.0
+
+Band 1:
+
+- Type: Low shelf
+- Frequency: 30 Hz to 250 Hz
+- Default: 90 Hz
+- IDs:
+  - eqBand1Enabled
+  - eqBand1FrequencyHz
+  - eqBand1GainDb
+
+Band 2:
+
+- Type: Bell
+- Frequency: 80 Hz to 1,000 Hz
+- Default: 280 Hz
+- IDs:
+  - eqBand2Enabled
+  - eqBand2FrequencyHz
+  - eqBand2GainDb
+  - eqBand2Q
+
+Band 3:
+
+- Type: Bell
+- Frequency: 250 Hz to 3,500 Hz
+- Default: 1,000 Hz
+- IDs:
+  - eqBand3Enabled
+  - eqBand3FrequencyHz
+  - eqBand3GainDb
+  - eqBand3Q
+
+Band 4:
+
+- Type: Bell
+- Frequency: 1,000 Hz to 8,000 Hz
+- Default: 3,000 Hz
+- IDs:
+  - eqBand4Enabled
+  - eqBand4FrequencyHz
+  - eqBand4GainDb
+  - eqBand4Q
+
+Band 5:
+
+- Type: Bell
+- Frequency: 2,500 Hz to 14,000 Hz
+- Default: 7,000 Hz
+- IDs:
+  - eqBand5Enabled
+  - eqBand5FrequencyHz
+  - eqBand5GainDb
+  - eqBand5Q
+
+Band 6:
+
+- Type: High shelf
+- Frequency: 5,000 Hz to 18,000 Hz
+- Default: 11,000 Hz
+- IDs:
+  - eqBand6Enabled
+  - eqBand6FrequencyHz
+  - eqBand6GainDb
+
+The interface must allow:
+
+- Horizontal node dragging for frequency
+- Vertical node dragging for gain
+- Mouse wheel or modifier drag for Q
+- Double-click reset
+- Band enable and disable
+- Visible frequency, gain, and Q values
+- Combined EQ-response display
+- Zero-decibel reference line
+- Frequency grid
+- Decibel grid
+
+Avoid recalculating expensive filter coefficients unnecessarily for every sample.
+
+# 13. FOUR-BAND CROSSOVER
+
+Split the signal into:
+
+1. Low
+2. Low-mid
+3. High-mid
+4. High
+
+Use phase-compatible crossover filters suitable for recombination.
+
+Prefer fourth-order Linkwitz–Riley-style behaviour unless another approach is technically justified and documented.
+
+Default crossover values:
+
+crossover1Hz:
+120 Hz
+
+crossover2Hz:
+1,100 Hz
+
+crossover3Hz:
+6,000 Hz
+
+Ranges:
+
+crossover1Hz:
+60 Hz to 300 Hz
+
+crossover2Hz:
+400 Hz to 3,000 Hz
+
+crossover3Hz:
+3,000 Hz to 14,000 Hz
+
+Prevent crossover points from crossing.
+
+Maintain a reasonable minimum spacing between points.
+
+Add tests for:
+
+- Frequency ordering
+- Neutral recombination
+- Stability
+- Finite output
+- No accidentally muted band
+- Sample-rate changes
+- Parameter automation
+
+# 14. MULTIBAND COMPRESSION
+
+Create one stereo-linked compressor for each of the four bands.
+
+Each band requires:
+
+- Enable
+- Threshold
+- Ratio
+- Attack
+- Release
+- Knee
+- Makeup gain
+- Mix
+- Solo
+- Gain-reduction metering
+
+Ranges:
+
+Threshold:
+-50 dB to 0 dB
+
+Ratio:
+1:1 to 10:1
+
+Attack:
+0.5 ms to 250 ms
+
+Release:
+20 ms to 2,000 ms
+
+Knee:
+0 dB to 18 dB
+
+Makeup:
+-6 dB to +12 dB
+
+Mix:
+0% to 100%
+
+Use consistent IDs:
+
+- band1Enabled
+- band1ThresholdDb
+- band1Ratio
+- band1AttackMs
+- band1ReleaseMs
+- band1KneeDb
+- band1MakeupDb
+- band1MixPercent
+- band1Solo
+
+Repeat for bands 2, 3, and 4.
+
+Add:
+
+multibandEnabled
+
+multibandAmountPercent
+Range: 0% to 100%
+Default: 70%
+
+Requirements:
+
+- Stereo-linked detection
+- Soft-knee behaviour
+- Smooth gain changes
+- Stable channel balance
+- Independent gain-reduction metering
+- Stable parameter automation
+- Correct reset behaviour
+- No NaN or infinity
+- No uncontrolled gain explosion
+- No abrupt solo transitions
+
+Only one band solo mode needs to be active at a time unless a clear multi-solo design is implemented.
+
+# 15. HARMONIC ENHANCER
+
+Implement a subtle harmonic-density stage.
+
+This is not a guitar distortion effect.
+
+Parameters:
+
+enhancerEnabled
+Default: Enabled
+
+enhancerDriveDb
+Range: 0 dB to 12 dB
+Default: 2 dB
+
+enhancerMixPercent
+Range: 0% to 100%
+Default: 12%
+
+enhancerTonePercent
+Range: -100% to +100%
+Default: 0%
+
+Use:
+
+- A smooth nonlinear transfer function
+- Controlled soft saturation
+- Wet/dry mixing
+- DC protection
+- Parameter smoothing
+
+Use oversampling where technically justified.
+
+Avoid aggressive default distortion.
+
+# 16. STEREO PROCESSING
+
+Implement:
+
+stereoEnabled
+Default: Enabled
+
+stereoWidthPercent
+Range: 0% to 150%
+Default: 108%
+
+Behaviour:
+
+- 0% produces mono
+- 100% preserves original stereo width
+- Values above 100% increase side level cautiously
+- Centre content remains stable
+
+stereoBalancePercent
+Range: -100% to +100%
+Default: 0%
+
+monoBassEnabled
+Default: Enabled
+
+monoBassFrequencyHz
+Range: 40 Hz to 250 Hz
+Default: 120 Hz
+
+correlationProtectionEnabled
+Default: Enabled
+
+Requirements:
+
+- Use phase-conscious mid/side processing or a justified equivalent
+- Keep bass below the selected cutoff increasingly mono
+- Display stereo phase correlation
+- Gradually reduce excessive widening during sustained negative correlation
+- Do not switch abruptly to mono
+- Do not create obvious pumping
+- Keep width automation smooth
+- Preserve finite output
+
+# 17. CLIPPER AND LIMITER
+
+Implement a final loudness-control stage containing:
+
+1. Oversampled soft clipping
+2. Look-ahead limiting
+3. Output ceiling control
+
+Clipper parameters:
+
+clipperEnabled
+Default: Enabled
+
+clipperDriveDb
+Range: 0 dB to 9 dB
+Default: 1.5 dB
+
+clipperMode
+Modes:
+- Soft
+- Firm
+
+Create original algorithms and names.
+
+Limiter parameters:
+
+limiterEnabled
+Default: Enabled
+
+limiterDriveDb
+Range: 0 dB to 12 dB
+Default: 3 dB
+
+limiterCeilingDb
+Range: -3 dBFS to -0.1 dBFS
+Default: -0.8 dBFS
+
+limiterLookaheadMs
+Range: 1 ms to 10 ms
+Default: 5 ms
+
+limiterReleaseMs
+Range: 20 ms to 500 ms
+Default: 120 ms
+
+limiterStyle
+Modes:
+- Transparent
+- Punch
+
+Requirements:
+
+- Use at least 4x oversampling for the final clipping or peak-control path where practical
+- Report processing latency to the host
+- Update reported latency correctly when necessary
+- Avoid clicks during parameter changes
+- Recover correctly after silence
+- Avoid infinite gain-reduction states
+- Handle full-scale input safely
+- Keep output under the selected ceiling within documented tolerance
+- Test inter-sample risk more safely than a simple sample clipper
+
+Use the label:
+
+Oversampled Peak
+
+Do not claim certified true-peak measurement without formal implementation and validation.
+
+# 18. OUTPUT STAGE
+
+Implement:
+
+outputTrimDb
+Range: -18 dB to +6 dB
+Default: 0 dB
+
+invertLeft
+Default: Off
+
+invertRight
+Default: Off
+
+globalBypass
+Default: Off
+
+Global bypass must:
+
+- Be click-free
+- Preserve channel layout
+- Consider plug-in latency
+- Avoid sudden loudness jumps where practical
+- Continue to behave correctly when the editor is closed
+
+# 19. METERING
+
+Implement real metering for:
+
+- Input left peak
+- Input right peak
+- Input left RMS
+- Input right RMS
+- Output left peak
+- Output right peak
+- Output left RMS
+- Output right RMS
+- AGC gain change
+- Band 1 gain reduction
+- Band 2 gain reduction
+- Band 3 gain reduction
+- Band 4 gain reduction
+- Limiter gain reduction
+- Stereo correlation
+- Oversampled peak warning
+- Clipping warning
+
+Use:
+
+- Fast peak response
+- Controlled visual decay
+- RMS smoothing
+- Peak-hold indicators
+- Resettable clipping indicators
+- Thread-safe audio-to-GUI data transfer
+
+Do not use fake meter animation.
+
+Meters must reflect actual processed audio.
+
+# 20. SPECTRUM ANALYZER
+
+Implement a real-time FFT analyzer.
+
+Requirements:
+
+- FFT size between 2,048 and 8,192
+- Appropriate window such as Hann
+- Logarithmic frequency axis
+- Approximately 20 Hz to 20 kHz
+- Approximately -90 dB to +12 dB
+- Smooth visual response
+- Maximum GUI update rate around 30 frames per second
+- Input spectrum
+- Output spectrum
+- Ability to show one or both
+- Combined EQ-response curve
+- Crossover-frequency markers
+- Freeze control
+- Analyzer enable control
+- Analyzer smoothing control
+
+Parameters:
+
+analyzerEnabled
+analyzerMode
+analyzerSmoothing
+analyzerFreeze
+
+Do not allocate in the audio callback.
+
+Use a lock-free FIFO or equivalent.
+
+Do not perform unnecessary GUI work when the editor is closed.
+
+# 21. USER INTERFACE
+
+Create an original modern broadcast-console interface.
+
+Default size:
+
+1180 × 760
+
+Minimum size:
+
+960 × 620
+
+Maximum suggested size:
+
+1600 × 1000
+
+The editor must be resizable.
+
+Visual qualities:
+
+- Technical
+- Clean
+- Professional
+- Premium
+- Modern
+- Legible
+- Suitable for long sessions
+- Less cluttered than a laboratory tool
+
+Do not copy Stereo Tool’s exact layout.
+
+Use original vector drawing or original SVG assets.
+
+Colour palette:
+
+Background:
+#0B1118
+
+Primary panel:
+#121B24
+
+Secondary panel:
+#18232E
+
+Grid:
+#263544
+
+Primary text:
+#EAF1F7
+
+Secondary text:
+#91A3B5
+
+Primary cyan:
+#4CD7FF
+
+Positive green:
+#7FE39A
+
+Warning amber:
+#FFBF5B
+
+Danger red:
+#FF5D69
+
+Muted:
+#516170
+
+Avoid:
+
+- Fake hardware screws
+- Excessive gradients
+- Excessive gloss
+- Copyrighted commercial icons
+- Unnecessary animation
+- Tiny unreadable labels
+- Heavy GPU usage
+
+## Layout
+
+Top header:
+
+- Product name
+- Current preset
+- Previous preset
+- Next preset
+- Preset browser
+- Save
+- Save As
+- A/B selector
+- Copy A to B
+- Copy B to A
+- Reset
+- Global bypass
+- Information/settings control
+
+Left section:
+
+- Input trim
+- High-pass filter
+- AGC controls
+- Input meters
+- AGC gain meter
+
+Centre upper section:
+
+- Large spectrum analyzer
+- Interactive EQ
+- EQ response
+- Input spectrum
+- Output spectrum
+- Crossover markers
+- Analyzer controls
+
+Centre lower section:
+
+- Four multiband compressor strips
+- Band names
+- Threshold
+- Ratio
+- Attack
+- Release
+- Makeup
+- Mix
+- Enable
+- Solo
+- Gain-reduction meters
+- Compact and expanded views
+
+Right section:
+
+- Harmonic enhancer
+- Stereo width
+- Balance
+- Mono bass
+- Correlation meter
+- Clipper
+- Limiter
+- Output meters
+- Output trim
+
+Footer:
+
+- Sample rate
+- Block size when available
+- Current latency
+- Processing status
+- Version
+- Help control
+- CPU indication only if measured reliably
+
+# 22. CONTROL BEHAVIOUR
+
+Every rotary or continuous control must support:
+
+- Dragging
+- Fine adjustment using a modifier
+- Double-click reset
+- Text entry
+- Formatted value display
+- Tooltip
+- Accessible name
+
+Use units:
+
+- Hz
+- kHz
+- dB
+- dBFS
+- ms
+- seconds
+- Percentage
+- Ratio
+
+Bypassed modules should appear visually inactive without making labels unreadable.
+
+Tooltips must explain controls in plain language.
+
+# 23. PARAMETER SYSTEM
+
+Use `juce::AudioProcessorValueTreeState`.
+
+Create all parameters in one centralized parameter layout.
+
+Parameter IDs must:
+
+- Be stable
+- Be unique
+- Use lowercase camelCase
+- Be independent from visible labels
+- Support host automation
+- Include JUCE parameter version hints where required
+- Never be renamed casually after release
+
+Create:
+
+docs/PARAMETERS.md
+
+Document for each parameter:
+
+- ID
+- Visible name
+- Type
+- Minimum
+- Maximum
+- Default
+- Unit
+- Processing module
+- Automation behaviour
+- Smoothing behaviour
+
+Smooth:
+
+- Gains
+- EQ changes where needed
+- Crossover changes
+- Width
+- Balance
+- Mix controls
+- Drives
+- Limiter ceiling
+- Bypass transitions
+
+# 24. STATE MANAGEMENT
+
+Implement complete state saving and restoration.
+
+Save:
+
+- Every sound parameter
+- A/B state
+- Current preset reference where appropriate
+- Analyzer mode
+- Analyzer preferences
+- Editor dimensions
+- Compact or advanced panel state
+- State-schema version
+
+Use a versioned state format.
+
+Add future migration hooks.
+
+Do not silently break old sessions.
+
+Tests must verify:
+
+- Round-trip state accuracy
+- Corrupt-state handling
+- Unknown-property handling
+- Missing-property defaults
+- Repeated state restoration
+- State restoration while prepared
+
+# 25. PRESET SYSTEM
+
+Implement:
+
+- Embedded factory presets
+- User presets
+- Save
+- Save As
+- Rename
+- Delete user preset
+- Import
+- Export
+- Previous
+- Next
+- Factory reset
+- A/B snapshots
+
+Store user presets in:
+
+%APPDATA%\Ammar Audio Labs\Aurora Broadcast Processor\Presets
+
+Never write user presets to Program Files.
+
+Use a versioned XML, JSON, or ValueTree-based format.
+
+Validate preset values before applying them.
+
+Malformed presets must not crash the processor.
+
+Factory presets:
+
+1. Safe Start
+2. European Contemporary
+3. Clean Digital
+4. Dance Energy
+5. Warm Adult Contemporary
+6. Voice Forward
+7. Bass Controlled
+8. Bright Pop
+9. Low Bitrate Stream
+10. Gentle Leveling
+
+Safe Start must be the first-load default.
+
+Preset descriptions:
+
+Safe Start:
+Conservative processing and safe output.
+
+European Contemporary:
+Tight bass, clear vocals, controlled high mids, mild widening, and moderately assertive limiting.
+
+Clean Digital:
+Minimal coloration, light AGC, gentle compression, and transparent limiting.
+
+Dance Energy:
+Stronger low-band control, energetic presence, and firmer output processing.
+
+Warm Adult Contemporary:
+Warmer low mids, softer upper frequencies, and relaxed limiting.
+
+Voice Forward:
+Reduced bass masking and increased vocal clarity.
+
+Bass Controlled:
+Stronger low-band control intended to reduce limiter pumping.
+
+Bright Pop:
+Clear top end and presence with harshness safeguards.
+
+Low Bitrate Stream:
+Controlled high frequencies, reduced stereo width, and safer codec-friendly output.
+
+Gentle Leveling:
+Slow AGC and restrained multiband compression.
+
+Use musically reasonable values.
+
+Avoid extreme preset defaults.
+
+Document all presets in:
+
+docs/PRESETS.md
+
+# 26. A/B COMPARISON
+
+Implement two complete sound snapshots:
+
+- A
+- B
+
+Controls:
+
+- Select A
+- Select B
+- Copy A to B
+- Copy B to A
+- Reset selected snapshot
+
+Switching must be smoothed or otherwise designed to avoid abrupt discontinuities.
+
+A/B snapshots should include all sound-related parameters.
+
+They do not need to duplicate purely visual preferences.
+
+# 27. STANDALONE APPLICATION
+
+The standalone application must use the same DSP engine and interface as the VST3.
+
+Provide:
+
+- Audio input device selection
+- Audio output device selection
+- Sample-rate selection
+- Buffer-size selection
+- Input-channel selection
+- Output-channel selection
+- Safe startup when the saved device is missing
+- Clear device error messages
+- Presets
+- State persistence
+- Analyzer
+- Metering
+- Global bypass
+
+Do not require an external host.
+
+# 28. PERFORMANCE
+
+Optimize for continuous broadcast operation.
+
+Requirements:
+
+- No repeated allocation in processBlock
+- No unbounded queues
+- No busy-wait loops
+- No unnecessary repainting
+- No telemetry
+- No cloud processing
+- No account requirement
+- No internet requirement after installation
+- No runtime dependency downloader
+
+Measure actual CPU use at:
+
+- 44.1 kHz, 512 samples
+- 48 kHz, 512 samples
+- 96 kHz, 512 samples
+
+Test analyzer:
+
+- Enabled
+- Disabled
+
+Record:
+
+- CPU model
+- RAM
+- Operating system
+- Compiler
+- Build type
+- Sample rate
+- Buffer size
+- Analyzer status
+- Observed CPU use
+
+Write results to:
+
+docs/PERFORMANCE.md
+
+Do not invent measurements.
+
+# 29. AUTOMATED TESTING
+
+Create tests for:
+
+## Parameter system
+
+- All expected parameters exist
+- IDs are unique
+- Defaults are in range
+- Normalized conversion works
+- Text formatting does not crash
+
+## State
+
+- Save succeeds
+- Restore succeeds
+- Values match
+- Corrupt state is rejected safely
+- Missing properties use safe defaults
+- Unknown properties do not crash
+
+## Presets
+
+- Every factory preset loads
+- Every factory value is valid
+- User preset round trip works
+- Invalid presets fail safely
+- Unknown fields are ignored safely
+
+## Silence
+
+- Silence remains silent
+- No denormal explosion
+- No NaN
+- No infinity
+
+## Sine waves
+
+Test:
+
+- 50 Hz
+- 100 Hz
+- 1 kHz
+- 5 kHz
+- 10 kHz
+
+Verify stable finite output.
+
+## Impulse
+
+Verify:
+
+- No crash
+- No infinite output
+- Correct latency behaviour
+- Stable recovery
+
+## Full scale
+
+Verify:
+
+- Finite output
+- Limiter responds
+- Output ceiling is respected within documented tolerance
+
+## Crossovers
+
+Verify:
+
+- Correct ordering
+- Predictable recombination
+- No muted bands
+- Stable parameter changes
+
+## Stereo
+
+Verify:
+
+- Width 100% is neutral within tolerance
+- Width 0% produces mono
+- Centre balance is neutral
+- Mono bass reduces low-frequency side energy
+- Correlation protection remains stable
+
+## Stress
+
+Rapidly automate parameters while processing:
+
+- Silence
+- Noise
+- Music-like generated signals
+- Alternating full-scale input
+
+Test multiple:
+
+- Sample rates
+- Block sizes
+- Channel layouts
+
+Verify:
+
+- No crash
+- No deadlock
+- No NaN
+- No infinity
+- No invalid memory behaviour
+
+## Lifecycle
+
+Repeatedly:
+
+1. Construct processor
+2. Prepare
+3. Process
+4. Open editor
+5. Close editor
+6. Save state
+7. Restore state
+8. Release resources
+9. Destroy processor
+
+# 30. VST3 VALIDATION
+
+Create:
+
+scripts/validate-vst3.ps1
+
+The script must:
+
+1. Locate the built VST3.
+2. Locate an approved validator when available.
+3. Run validation.
+4. Capture complete output.
+5. Save output to:
+   docs/vst3-validation.txt
+6. Return a non-zero code when validation runs and fails.
+
+Prefer an official Steinberg VST3 validator or another clearly documented validation approach.
+
+Pin validator dependencies when added.
+
+Do not download executables from arbitrary sources.
+
+If validation cannot run, record:
+
+VALIDATION NOT RUN — VALIDATOR UNAVAILABLE
+
+Do not report validation as passed unless it actually ran successfully.
+
+# 31. HOST TESTING
+
+Create:
+
+docs/HOST_TESTING.md
+
+Include a manual test matrix for:
+
+- RadioBOSS
+- NextKast
+- REAPER
+- JUCE AudioPluginHost
+- Standalone application
+- Any additional host actually tested
+
+For each host:
+
+1. Record host name.
+2. Record host version.
+3. Record host architecture.
+4. Record plug-in format.
+5. Install or scan the VST3.
+6. Confirm the plug-in appears.
+7. Confirm the editor opens.
+8. Confirm audio passes.
+9. Confirm bypass works.
+10. Confirm presets change the sound.
+11. Confirm state survives reopening.
+12. Confirm closing the editor does not stop processing.
+13. Confirm CPU remains stable.
+14. Confirm sample-rate changes work.
+15. Confirm the host can unload and reload the plug-in.
+16. Run an extended playback test.
+17. Record pass or fail.
+18. Record problems and workarounds.
+
+Do not claim universal compatibility.
+
+Use this wording:
+
+Designed for compatible Windows x64 VST3 hosts. Compatibility must be verified with the specific host and host version.
+
+If a host is unavailable, record:
+
+NOT TESTED — HOST UNAVAILABLE
+
+# 32. LEGACY COMPATIBILITY
+
+Do not download unofficial VST2 SDK files.
+
+Do not use an unlicensed VST2 SDK.
+
+Do not claim VST2 support.
+
+The initial release includes:
+
+- VST3 x64
+- Standalone x64
+
+Create:
+
+docs/LEGACY_FORMAT_OPTIONS.md
+
+Explain possible separately scoped future options:
+
+- Properly licensed VST2 support where legally available
+- Original WinAmp DSP adapter
+- Dedicated host bridge
+- Standalone routing through a virtual audio device
+- Other host-specific adapters
+
+Do not delay the stable VST3 core to implement legacy adapters.
+
+# 33. INSTALLER
+
+Create an Inno Setup installer:
+
+installer/AuroraBroadcastProcessor.iss
+
+The installer must install the VST3 to:
+
+C:\Program Files\Common Files\VST3\Aurora Broadcast Processor.vst3
+
+Install the standalone application to:
+
+C:\Program Files\Ammar Audio Labs\Aurora Broadcast Processor\
+
+Include:
+
+- Optional Start menu shortcut
+- Optional desktop shortcut
+- Documentation
+- Uninstaller
+- Version information
+- Company information
+- Upgrade-safe application ID
+
+Requirements:
+
+- Support 64-bit Windows
+- Reject unsupported 32-bit Windows
+- Preserve user presets during normal uninstall
+- Avoid deleting unrelated files
+- Use release-relative source paths
+- Produce a versioned installer filename
+- Provide clear error messages
+
+If Inno Setup is unavailable locally, still generate the complete `.iss` source.
+
+# 34. LOCAL BUILD SCRIPTS
+
+Create PowerShell scripts that run from the repository root.
+
+All scripts must:
+
+- Stop on errors
+- Return meaningful exit codes
+- Print clear status messages
+- Quote paths safely
+- Resolve paths relative to the repository
+- Avoid deleting unrelated files
+
+Create:
+
+## scripts/check-environment.ps1
+
+Check required tools and versions.
+
+## scripts/bootstrap.ps1
+
+Prepare dependencies.
+
+## scripts/configure.ps1
+
+Configure:
+
+build/windows-x64
+
+## scripts/build-debug.ps1
+
+Build Debug.
+
+## scripts/build-release.ps1
+
+Build Release.
+
+## scripts/run-tests.ps1
+
+Build and run tests.
+
+## scripts/validate-vst3.ps1
+
+Run available VST3 validation.
+
+## scripts/install-vst3-local.ps1
+
+Copy the development VST3 into the standard VST3 folder.
+
+Handle administrator permissions safely.
+
+## scripts/uninstall-vst3-local.ps1
+
+Remove only the development copy created by the install script.
+
+## scripts/package-release.ps1
+
+Create local release packages.
+
+## scripts/calculate-checksums.ps1
+
+Generate deterministic SHA-256 checksums.
+
+## scripts/generate-release-manifest.ps1
+
+Generate release metadata automatically.
+
+## scripts/verify-release-output.ps1
+
+Verify release contents and fail on invalid output.
+
+# 35. BUILD DIRECTORIES
+
+Use repository-relative paths.
+
+Local build directory:
+
+build/windows-x64
+
+Local staging directory:
+
+dist/staging
+
+Final output directory:
+
+dist
+
+GitHub Actions build directory:
+
+${{ github.workspace }}\build\windows-x64
+
+GitHub Actions staging directory:
+
+${{ github.workspace }}\dist\staging
+
+GitHub Actions output directory:
+
+${{ github.workspace }}\dist
+
+Do not embed absolute local development paths into generated text files or customer packages.
+
+# 36. GITHUB ACTIONS OVERVIEW
+
+GitHub Actions is the authoritative system for producing official customer-facing Windows output files.
+
+Local builds are for development and debugging.
+
+Official downloadable builds must be generated from a clean GitHub-hosted Windows runner.
+
+Create:
+
+1. `.github/workflows/ci-windows.yml`
+2. `.github/workflows/build-release-windows.yml`
+3. `.github/workflows/publish-release.yml`
+
+Use:
+
+- `windows-2022`
+- Visual Studio 2022
+- MSVC x64
+- Minimum GitHub token permissions
+- Official GitHub actions where practical
+- Pinned stable action versions
+- Safe caching
+- Deterministic packaging order
+
+Do not expose secrets.
+
+Do not use personal access tokens when `GITHUB_TOKEN` is sufficient.
+
+Do not use `pull_request_target` to build untrusted code.
+
+# 37. WINDOWS CI WORKFLOW
+
+Create:
+
+.github/workflows/ci-windows.yml
+
+Display name:
+
+Windows CI
+
+Triggers:
+
+- Pull requests targeting the default branch
+- Pushes to the default branch
+- Manual workflow dispatch
+
+Permissions:
+
+contents: read
+
+Use concurrency control:
+
+- Group by workflow and Git reference
+- Cancel superseded branch runs
+- Do not affect tagged release workflows
+
+Steps:
+
+1. Check out the repository.
+2. Include submodules if required.
+3. Display runner information.
+4. Display Git version.
+5. Display CMake version.
+6. Display compiler environment.
+7. Restore safe dependency caches.
+8. Configure CMake.
+9. Build the test target in Release.
+10. Build the VST3 in Release.
+11. Build the standalone application in Release.
+12. Run all automated tests.
+13. Run release-output verification for CI outputs.
+14. Collect build logs.
+15. Collect test results.
+16. Upload CI artifacts.
+17. Write a clear GitHub Actions job summary.
+
+The CI workflow must fail when:
+
+- CMake configuration fails
+- Compilation fails
+- Required tests fail
+- The VST3 is missing
+- The standalone executable is missing
+- Required output is empty
+- DSP tests detect invalid values
+- State tests fail
+- Preset tests fail
+- Packaging verification fails
+
+Do not report success when required binaries were not produced.
+
+CI artifact name:
+
+AuroraBroadcastProcessor-Windows-x64-CI
+
+Include:
+
+- VST3 bundle
+- Standalone executable
+- README
+- Installation documentation
+- Host-testing documentation
+- Test summary
+- Build metadata
+- Git commit identifier
+
+Optional diagnostics artifact:
+
+AuroraBroadcastProcessor-Windows-x64-Diagnostics
+
+Include:
+
+- CMake logs
+- Compiler logs
+- Test logs
+- Validator output
+- Environment information
+- Dependency versions
+
+Do not include diagnostic logs in customer release packages.
+
+# 38. RELEASE BUILD WORKFLOW
+
+Create:
+
+.github/workflows/build-release-windows.yml
+
+Display name:
+
+Build Windows Release
+
+Triggers:
+
+- Manual workflow dispatch
+- Tags matching `v*.*.*`
+
+Manual inputs:
+
+- Release version
+- Build installer
+- Run extended DSP tests
+- Prerelease status
+
+Use safe defaults:
+
+- Installer enabled
+- Tests enabled
+- Extended tests enabled for tags
+- Publishing handled separately
+- Tests cannot be disabled for tagged releases
+
+Version formats may include:
+
+- 0.1.0
+- 1.0.0
+- 1.2.3-beta.1
+
+Reject invalid version input.
+
+When triggered by a tag:
+
+- Remove the leading `v`
+- Validate the semantic version
+- Confirm it matches the project version
+
+The workflow must verify:
+
+- Requested version
+- Git tag version
+- CMake project version
+- Installer version
+- Package version
+- Manifest version
+
+All must agree.
+
+Release steps:
+
+1. Check out the exact commit.
+2. Initialize pinned dependencies.
+3. Configure a clean Windows x64 Release build.
+4. Build VST3.
+5. Build standalone application.
+6. Build tests.
+7. Run all tests.
+8. Run extended stress tests for tags.
+9. Run VST3 validation where available.
+10. Create staging directories.
+11. Generate installer.
+12. Create combined ZIP.
+13. Create VST3-only ZIP.
+14. Create standalone-only ZIP.
+15. Generate BUILD_INFO.json.
+16. Generate VERSION.txt.
+17. Generate release manifest.
+18. Generate SHA-256 checksums.
+19. Verify every output.
+20. Upload workflow artifacts.
+21. Write a release summary.
+
+The release workflow must fail when:
+
+- Tests fail
+- Required builds fail
+- Installer generation is enabled and fails
+- Required output is missing
+- ZIP files are invalid
+- Version values disagree
+- Required files are empty
+- The VST3 bundle is empty
+- The standalone executable is empty
+- The installer is empty
+- Checksums are missing
+- The manifest is invalid
+- Prohibited development files appear in packages
+
+Do not downgrade a failed release into a successful partial release.
+
+# 39. RELEASE OUTPUT FILES
+
+Generate:
+
+dist/AuroraBroadcastProcessor-Windows-x64-v<VERSION>.zip
+
+dist/AuroraBroadcastProcessor-Setup-v<VERSION>.exe
+
+dist/AuroraBroadcastProcessor-VST3-v<VERSION>.zip
+
+dist/AuroraBroadcastProcessor-Standalone-v<VERSION>.zip
+
+dist/AuroraBroadcastProcessor-Checksums-v<VERSION>.txt
+
+dist/AuroraBroadcastProcessor-ReleaseManifest-v<VERSION>.json
+
+dist/AuroraBroadcastProcessor-TestResults-v<VERSION>.zip
+
+Replace `<VERSION>` with the resolved version.
+
+The combined ZIP must contain:
+
+VST3/Aurora Broadcast Processor.vst3
+
+Standalone/Aurora Broadcast Processor.exe
+
+Documentation/README.md
+
+Documentation/INSTALLATION.md
+
+Documentation/HOST_TESTING.md
+
+Documentation/PRESETS.md
+
+Documentation/KNOWN_LIMITATIONS.md
+
+LICENSE_NOTICE.md
+
+THIRD_PARTY_NOTICES.md
+
+VERSION.txt
+
+BUILD_INFO.json
+
+The VST3-only ZIP must contain:
+
+- Complete VST3 bundle
+- Minimal installation instructions
+- Licence notices
+- Version information
+
+The standalone-only ZIP must contain:
+
+- Standalone executable
+- Required runtime files, if any
+- Minimal instructions
+- Licence notices
+- Version information
+
+Do not include:
+
+- Debug binaries
+- Object files
+- CMake caches
+- Visual Studio intermediate files
+- Downloaded dependency source trees
+- Private keys
+- Certificates
+- User presets
+- Local paths
+- `.git`
+- Workflow source files
+- `prompt.txt`
+- Temporary logs
+- Test audio
+- Unnecessary source files
+
+# 40. RELEASE MANIFEST
+
+Generate automatically:
+
+AuroraBroadcastProcessor-ReleaseManifest-v<VERSION>.json
+
+Include:
+
+- Product name
+- Product version
+- Company name
+- Git commit SHA
+- Git tag
+- Workflow run ID
+- Workflow run number
+- UTC build timestamp
+- Runner operating system
+- Runner image
+- CMake version
+- Compiler version
+- JUCE version
+- Build configuration
+- Architecture
+- Plug-in formats
+- Tests executed
+- Test result
+- Validation status
+- Installer status
+- Code-signing status
+- Output filenames
+- Output sizes
+- SHA-256 values
+
+Do not include:
+
+- Tokens
+- Secrets
+- Local usernames
+- Local absolute paths
+- Private environment variables
+
+When no signing certificate is configured, record:
+
+UNSIGNED
+
+Do not fake code signing.
+
+# 41. INSTALLER CREATION IN CI
+
+The release workflow must build the Inno Setup installer.
+
+Process:
+
+1. Check whether the Inno Setup compiler is installed.
+2. Provision a pinned trusted version if necessary.
+3. Use an official or trusted package source.
+4. Compile the `.iss` file.
+5. Capture the compiler output.
+6. Verify the installer exists.
+7. Verify it is non-empty.
+8. Ensure the filename includes the release version.
+9. Copy it to `dist`.
+10. Include it in checksums.
+11. Include it in release verification.
+
+Do not download executable tools from arbitrary URLs.
+
+Document the provisioning strategy in:
+
+docs/GITHUB_ACTIONS.md
+
+# 42. PUBLISH GITHUB RELEASE WORKFLOW
+
+Create:
+
+.github/workflows/publish-release.yml
+
+Display name:
+
+Publish GitHub Release
+
+Permissions:
+
+contents: write
+
+The publishing workflow must publish only verified output from a successful release build.
+
+It must not rebuild unverified binaries independently unless the exact same workflow also runs all release tests and verification.
+
+Preferred behaviour:
+
+1. Identify the release tag.
+2. Confirm the tag exists.
+3. Locate the successful release-build workflow.
+4. Download its exact artifacts.
+5. Verify checksums.
+6. Verify required files.
+7. Read release notes from CHANGELOG.md.
+8. Create a draft release first where practical.
+9. Upload customer-facing assets.
+10. Mark prereleases correctly.
+11. Publish only after all uploads succeed.
+12. Avoid overwriting an existing release without explicit instruction.
+
+Public assets:
+
+- Combined Windows ZIP
+- VST3-only ZIP
+- Standalone-only ZIP
+- Installer
+- SHA-256 checksums
+- Release manifest
+
+Do not publish internal build logs as customer assets.
+
+Use GitHub CLI or official GitHub-supported actions where practical.
+
+Avoid unnecessary third-party publishing actions.
+
+# 43. GITHUB ACTIONS SECURITY
+
+Apply:
+
+- Minimum permissions
+- No secrets in logs
+- No committed private keys
+- No committed certificates
+- No tokens in source files
+- No shell execution of untrusted PR titles
+- Validate manual version input
+- Quote paths and variables
+- Do not publish from pull requests
+- Do not expose repository secrets to forked PR code
+- Do not use `pull_request_target` for building untrusted contributions
+- Do not give write permissions to CI
+- Do not publish untested output
+- Pin third-party actions
+- Keep workflow dependencies minimal
+
+Code signing may be added later using secure repository secrets or a signing service.
+
+Unsigned development and initial release builds are allowed but must be labelled honestly.
+
+# 44. BUILD CACHING
+
+Cache only safe dependencies and generated dependency data.
+
+Cache keys should include:
+
+- Operating system
+- Architecture
+- Compiler
+- CMake configuration
+- JUCE version
+- Dependency configuration
+- Relevant CMake files
+
+Do not cache final release binaries and present them as newly compiled output.
+
+A cache miss must not break the build.
+
+The project must support a completely clean uncached build.
+
+# 45. OUTPUT VERIFICATION
+
+Create:
+
+scripts/verify-release-output.ps1
+
+Verify:
+
+- Expected files exist
+- Expected files are not empty
+- Expected directories exist
+- VST3 bundle contains its plug-in binary
+- Standalone executable exists
+- Installer exists when required
+- ZIP files open successfully
+- ZIP files contain expected paths
+- Versions are consistent
+- Manifest contains valid JSON
+- Checksum file covers every public asset
+- Checksums verify successfully
+- No local absolute paths appear in generated text
+- No private keys appear
+- No certificates appear
+- No Debug binaries appear
+- No CMake cache appears
+- No `.git` directory appears
+- No `prompt.txt` appears
+- No workflow source files appear
+- No compiler intermediates appear
+
+Return a non-zero exit code on any failure.
+
+# 46. CHECKSUMS
+
+Create:
+
+scripts/calculate-checksums.ps1
+
+Use SHA-256.
+
+Requirements:
+
+- Use native PowerShell functionality where practical
+- Sort filenames deterministically
+- Use a consistent text format
+- Include every customer-facing asset
+- Do not include the checksum file’s own checksum inside itself
+- Verify checksums before publishing
+
+# 47. REPEATABLE BUILDS
+
+Pin:
+
+- JUCE version
+- CMake minimum version
+- GitHub action versions
+- Installer provisioning method
+- Any additional dependency versions
+
+Record dependency versions.
+
+Use UTC timestamps.
+
+Avoid local paths and usernames.
+
+Use the phrase:
+
+Repeatable clean CI build
+
+Do not claim bit-for-bit reproducibility unless it has actually been tested.
+
+# 48. DOCUMENTATION
+
+Create a complete root README.md containing:
+
+- Product overview
+- Current development status
+- Features
+- Formats
+- Supported operating systems
+- Build instructions
+- Test instructions
+- Installation instructions
+- Preset location
+- Known limitations
+- Host compatibility wording
+- Licence notice
+- Troubleshooting
+- GitHub Actions artifact instructions
+
+Create:
+
+## docs/ARCHITECTURE.md
+
+Explain:
+
+- Audio processor lifecycle
+- DSP modules
+- Signal flow
+- Thread boundaries
+- Analyzer data transfer
+- State management
+- Preset system
+- UI architecture
+- Standalone architecture
+
+## docs/DSP_DESIGN.md
+
+Explain:
+
+- Input stage
+- AGC detector
+- EQ
+- Crossovers
+- Multiband compression
+- Harmonic enhancement
+- Stereo processing
+- Mono bass
+- Correlation protection
+- Oversampling
+- Clipping
+- Limiting
+- Latency
+
+Use Mermaid diagrams where useful.
+
+## docs/BUILDING.md
+
+Include exact local build commands.
+
+## docs/INSTALLATION.md
+
+Include:
+
+- Installer installation
+- Manual VST3 installation
+- Standalone installation
+- Uninstallation
+- Preset location
+
+## docs/GITHUB_ACTIONS.md
+
+Document:
+
+- Every workflow
+- Triggers
+- Permissions
+- Runner
+- Build steps
+- Cache strategy
+- Artifact names
+- Artifact contents
+- How to run CI manually
+- How to run a release build
+- How to download artifacts
+- How to diagnose failures
+- Installer provisioning
+- Validation policy
+- Signing status
+
+## docs/RELEASE_PROCESS.md
+
+Document:
+
+1. Update version.
+2. Update changelog.
+3. Run local tests.
+4. Commit.
+5. Push.
+6. Confirm Windows CI.
+7. Create version tag.
+8. Push version tag.
+9. Wait for release build.
+10. Review tests.
+11. Review validation.
+12. Review packages.
+13. Publish release.
+14. Download published installer.
+15. Perform final installation smoke test.
+
+## docs/ARTIFACTS.md
+
+For each artifact, document:
+
+- Filename
+- Purpose
+- Audience
+- Contents
+- Excluded files
+- Public status
+- Signing status
+- Checksum method
+
+## docs/KNOWN_LIMITATIONS.md
+
+State honestly:
+
+- Hosts actually tested
+- Hosts not tested
+- VST2 is not included
+- WinAmp DSP is not included
+- The processor is not RF equipment
+- Presets require later tuning against actual reference stations
+- Output depends on source material and downstream encoding
+- Host compatibility varies
+- Code-signing status
+- Validation status
+
+## docs/BUILD_LOG.md
+
+Record:
+
+- Date
+- Commands
+- Build result
+- Test result
+- Validation result
+- Packaging result
+- Errors
+- Fixes
+- Git commit
+
+Never fabricate successful results.
+
+# 49. LICENSING
+
+Create:
+
+LICENSE_NOTICE.md
+THIRD_PARTY_NOTICES.md
+
+Document:
+
+- JUCE version
+- JUCE licensing considerations
+- VST3 SDK information
+- Additional libraries
+- Fonts
+- Icons
+- Test frameworks
+- Installer tooling
+- Build tooling
+
+Do not assume closed-source commercial distribution is permitted without verifying the JUCE licence.
+
+Do not include third-party fonts, icons, or assets without compatible redistribution rights.
+
+Prefer:
+
+- System fonts
+- Original vector icons
+- JUCE-drawn controls
+- Permissively licensed assets with attribution
+
+Do not display JUCE branding in the product interface.
+
+# 50. CODING STANDARDS
+
+Use:
+
+- RAII
+- `std::unique_ptr` for exclusive ownership
+- Const correctness
+- `enum class`
+- Namespaces
+- Small focused classes
+- `#pragma once`
+- Explicit constructors where appropriate
+- Clear DSP comments
+- Consistent formatting
+- Strong compiler warnings
+
+Prefer `/W4` for project code.
+
+Do not treat unrelated JUCE warnings as fatal unless they indicate a real problem.
+
+Avoid:
+
+- Raw owning pointers
+- Giant processor classes
+- Giant editor classes
+- Global mutable state
+- DSP singletons
+- Unbounded threads
+- Hard-coded local paths
+- Placeholder implementations
+- Fake UI controls
+- Fake meters
+- UI controls not connected to parameters
+- Parameters that do not affect DSP
+- Commented-out abandoned code
+- Unexplained magic numbers
+
+# 51. ERROR HANDLING
+
+Handle:
+
+- Unsupported bus layout
+- Missing audio device
+- Failed preset load
+- Failed preset write
+- Invalid state
+- Failed state migration
+- Missing preset directory
+- Permission errors
+- Missing installer tool
+- Missing validator
+- Failed VST3 copy
+- Failed package verification
+- Failed checksum verification
+- Invalid release version
+- Unsupported operating system
+
+Show useful user-facing messages.
+
+Do not display raw internal exception text without context.
+
+Do not write continuously from the audio thread.
+
+# 52. DEVELOPMENT MILESTONES
+
+Complete work in these milestones.
+
+## Milestone 1: Repository and build foundation
+
+Create:
+
+- Git repository setup
+- `.gitignore`
+- CMake
+- Pinned JUCE dependency
+- Basic VST3
+- Basic standalone target
+- Test target
+- Build scripts
+- GitHub Actions workflow skeletons
+- Initial documentation
+
+Configure and compile before continuing.
+
+## Milestone 2: Parameters and state
+
+Create:
+
+- Central parameter layout
+- State saving
+- State restoration
+- State versioning
+- Basic UI controls
+- Parameter attachments
+- State tests
+
+Build and test.
+
+## Milestone 3: Input, EQ, analyzer, and metering
+
+Create:
+
+- Input trim
+- DC blocker
+- High-pass filter
+- Six-band EQ
+- FFT analyzer
+- Interactive EQ
+- Input/output meters
+
+Build and test.
+
+## Milestone 4: AGC and multiband dynamics
+
+Create:
+
+- AGC
+- Crossovers
+- Four compressors
+- Recombination
+- Gain-reduction metering
+- DSP tests
+
+Build and test.
+
+## Milestone 5: Enhancer, stereo, clipper, limiter
+
+Create:
+
+- Harmonic enhancement
+- Width
+- Balance
+- Mono bass
+- Correlation protection
+- Oversampled clipper
+- Look-ahead limiter
+- Latency reporting
+- Tests
+
+Build and test.
+
+## Milestone 6: Presets and full interface
+
+Create:
+
+- Factory presets
+- User presets
+- A/B snapshots
+- Complete interface
+- Resizing
+- Tooltips
+- Advanced view
+- UI refinement
+
+Build and test.
+
+## Milestone 7: Packaging and validation
+
+Complete:
+
+- Release build
+- Automated tests
+- VST3 validation
+- Installer
+- ZIP packages
+- Checksums
+- Release manifest
+- Documentation
+- Output verification
+
+## Milestone 8: GitHub Actions execution
+
+Complete:
+
+- CI workflow
+- Release-build workflow
+- Publish workflow
+- Workflow syntax checks
+- Git commits
+- Push when remote access is available
+- At least one real workflow attempt when possible
+- Honest result reporting
+
+# 53. GIT COMMITS
+
+After each major working milestone:
+
+1. Configure.
+2. Compile.
+3. Run tests.
+4. Fix errors.
+5. Update docs/BUILD_LOG.md.
+6. Create a Git commit.
+
+Suggested commits:
+
+- build: initialize JUCE audio processor project
+- ci: add Windows build and test workflows
+- feat: add parameter and state architecture
+- feat: implement input EQ and analyzer
+- feat: implement AGC and multiband dynamics
+- feat: add stereo processing clipper and limiter
+- feat: complete preset system and interface
+- test: add DSP lifecycle and stress coverage
+- build: add installer and release packaging
+- ci: add verified GitHub release pipeline
+- docs: complete product and release documentation
+
+Do not create commits claiming success when the corresponding build fails.
+
+# 54. ACCEPTANCE CRITERIA
+
+The project is complete only when:
+
+1. The current workspace is used directly.
+2. No nested project directory was created.
+3. Existing unrelated user files were preserved.
+4. Git is initialized or preserved.
+5. CMake configures successfully, or the exact blocker is documented.
+6. VST3 builds in Release, or the exact blocker is documented.
+7. Standalone builds in Release, or the exact blocker is documented.
+8. Tests build and run, or the exact blocker is documented.
+9. Audio passes through the processor.
+10. Every visible audio control affects real DSP.
+11. State saving works.
+12. State restoration works.
+13. Factory presets load.
+14. User presets work.
+15. Analyzer displays actual audio data.
+16. Meters display actual audio data.
+17. Gain-reduction meters display real gain reduction.
+18. Silence remains silent.
+19. Stress tests do not produce NaN or infinity.
+20. No normal audio-callback allocation is introduced.
+21. Limiter latency is reported.
+22. Global bypass is click-free.
+23. Editor resizes correctly.
+24. VST3 validation is recorded honestly.
+25. Installer source exists.
+26. Installer is generated in release CI when enabled.
+27. Combined ZIP is generated.
+28. VST3-only ZIP is generated.
+29. Standalone-only ZIP is generated.
+30. SHA-256 checksums are generated.
+31. Release manifest is generated.
+32. Required missing files fail verification.
+33. GitHub Actions YAML is valid.
+34. CI runs on pull requests.
+35. CI runs on default-branch pushes.
+36. CI can run manually.
+37. Release build can run manually.
+38. Release build runs for semantic-version tags.
+39. CI builds the VST3.
+40. CI builds the standalone application.
+41. CI runs automated tests.
+42. Failing tests fail CI.
+43. Release publishing requires verified output.
+44. Public assets come from a successful clean build.
+45. Packages contain no local absolute paths.
+46. Packages contain no `prompt.txt`.
+47. Packages contain no private keys.
+48. Packages contain no certificates.
+49. Workflow logs do not expose secrets.
+50. Code-signing status is reported honestly.
+51. Host tests are reported honestly.
+52. No commercial interface or preset assets are copied.
+53. No essential TODO markers remain.
+54. The final Git working tree is clean except for ignored build output.
+55. A real GitHub Actions run is attempted when remote access permits.
+56. The actual GitHub Actions result is recorded.
+57. Workflow failures are not described as successful.
+
+# 55. EXECUTION INSTRUCTIONS
+
+Begin immediately.
+
+First:
+
+1. Treat the current VS Code workspace as the repository root.
+2. Inspect all existing files.
+3. Preserve `prompt.txt`.
+4. Check Git status.
+5. Check Git remotes.
+6. Inspect the development environment.
+7. Write `docs/ENVIRONMENT.md`.
+8. Create the CMake and JUCE foundation.
+9. Create the GitHub Actions workflow files.
+10. Proceed through Milestone 1.
+11. Configure locally.
+12. Build locally.
+13. Run tests.
+14. Fix errors before proceeding.
+
+Do not stop after generating source files.
+
+Do not stop after generating workflow YAML.
+
+Do not stop after creating an interface.
+
+Continue until all technically possible milestones are complete.
+
+If GitHub remote access is available:
+
+1. Commit the workflows.
+2. Push the branch.
+3. Trigger or observe Windows CI.
+4. Inspect the actual workflow result.
+5. Fix workflow errors.
+6. Repeat until successful or a genuine external blocker is reached.
+
+If GitHub remote access is unavailable, report:
+
+GITHUB ACTIONS NOT EXECUTED — REMOTE REPOSITORY ACCESS UNAVAILABLE
+
+Do not invent a remote workflow result.
+
+# 56. FINAL REPORT
+
+At completion, provide a concise final report containing:
+
+- Repository status without exposing the local absolute path
+- Product version
+- JUCE version
+- CMake version
+- Compiler used
+- Build configuration
+- Targets built
+- Test results
+- VST3 validation status
+- Installer status
+- Output artifact names
+- GitHub Actions workflows created
+- GitHub Actions workflows actually executed
+- Workflow run result
+- CI artifact names
+- Release asset names
+- GitHub Release publishing status
+- Code-signing status
+- Checksum verification status
+- Hosts actually tested
+- Hosts not tested
+- Known limitations
+- Recommended next technical step
+
+Begin now by inspecting the current workspace and writing `docs/ENVIRONMENT.md`.

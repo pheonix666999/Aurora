@@ -1,0 +1,12 @@
+juce_add_console_app(AuroraBroadcastProcessorTests PRODUCT_NAME "Aurora Broadcast Processor Tests")
+target_sources(AuroraBroadcastProcessorTests PRIVATE
+    TestMain.cpp ParameterTests.cpp StateTests.cpp PresetTests.cpp DSPTests.cpp
+    CrossoverTests.cpp StereoTests.cpp LimiterTests.cpp LifecycleTests.cpp StressTests.cpp)
+target_include_directories(AuroraBroadcastProcessorTests PRIVATE "${CMAKE_SOURCE_DIR}/Source")
+target_link_libraries(AuroraBroadcastProcessorTests PRIVATE AuroraBroadcastProcessor juce::juce_audio_utils juce::juce_dsp)
+aurora_apply_options(AuroraBroadcastProcessorTests)
+aurora_enable_warnings(AuroraBroadcastProcessorTests)
+juce_generate_juce_header(AuroraBroadcastProcessorTests)
+add_test(NAME AuroraBroadcastProcessorTests COMMAND AuroraBroadcastProcessorTests)
+set_tests_properties(AuroraBroadcastProcessorTests PROPERTIES TIMEOUT 300)
+
