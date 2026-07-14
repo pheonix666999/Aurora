@@ -6,15 +6,21 @@ include(cmake/Dependencies.cmake)
 include(cmake/CompilerWarnings.cmake)
 include(cmake/ProjectOptions.cmake)
 
+set(AURORA_PLUGIN_FORMATS VST3 Standalone)
+if(APPLE)
+    list(APPEND AURORA_PLUGIN_FORMATS AU)
+endif()
+
 juce_add_plugin(AuroraBroadcastProcessor
     COMPANY_NAME "Ammar Audio Labs"
     BUNDLE_ID "com.ammaraudio.aurorabroadcastprocessor"
     PLUGIN_MANUFACTURER_CODE AALB
     PLUGIN_CODE AUBP
-    FORMATS VST3 Standalone
+    FORMATS ${AURORA_PLUGIN_FORMATS}
     PRODUCT_NAME "Aurora Broadcast Processor"
     DESCRIPTION "Broadcast audio processor for digital and internet radio"
     VST3_CATEGORIES Fx Dynamics EQ
+    AU_MAIN_TYPE kAudioUnitType_Effect
     IS_SYNTH FALSE
     NEEDS_MIDI_INPUT FALSE
     NEEDS_MIDI_OUTPUT FALSE
@@ -57,4 +63,3 @@ juce_generate_juce_header(AuroraBroadcastProcessor)
 enable_testing()
 add_subdirectory(Tests)
 include(cmake/Packaging.cmake)
-

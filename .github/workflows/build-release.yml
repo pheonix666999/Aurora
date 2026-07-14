@@ -1,0 +1,168 @@
+name: Build Cross-Platform Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: Semantic version matching VERSION.txt (X.Y.Z)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cross-platform-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  windows:
+    name: Windows x64 Release
+    runs-on: windows-2022
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Resolve and validate version
+        id: version
+        shell: pwsh
+        run: |
+          $version = if ('${{ github.event_name }}' -eq 'workflow_dispatch') { '${{ inputs.release_version }}' } else { '${{ github.ref_name }}'.TrimStart('v') }
+          if ($version -notmatch '^\d+\.\d+\.\d+$') { throw 'Version must use X.Y.Z format' }
+          if ($version -ne (Get-Content VERSION.txt -Raw).Trim()) { throw 'Tag/input and VERSION.txt disagree' }
+          "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Display toolchain
+        shell: pwsh
+        run: |
+          git --version
+          cmake --version
+          & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -property installationVersion
+
+      - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: build/windows-x64/_deps
+          key: juce-windows-x64-msvc-release-8.0.14-${{ hashFiles('CMakeLists.txt', 'cmake/*.cmake', 'VERSION.txt') }}
+
+      - name: Configure Windows x64
+        shell: pwsh
+        run: ./scripts/github-configure.ps1
+
+      - name: Build VST3, standalone, and tests
+        shell: pwsh
+        run: ./scripts/github-build.ps1
+
+      - name: Run extended tests
+        shell: pwsh
+        run: ./scripts/github-test.ps1 -Extended
+
+      - name: Attempt VST3 validation
+        shell: pwsh
+        run: ./scripts/validate-vst3.ps1
+
+      - name: Provision pinned Inno Setup
+        shell: pwsh
+        run: choco install innosetup --version=6.7.1 --yes --no-progress
+
+      - name: Package and verify Windows release
+        shell: pwsh
+        run: ./scripts/github-package.ps1 -Version '${{ steps.version.outputs.version }}' -RequireInstaller
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: AuroraBroadcastProcessor-Windows-x64-Release-v${{ steps.version.outputs.version }}
+          path: |
+            dist/AuroraBroadcastProcessor-Windows-x64-v${{ steps.version.outputs.version }}.zip
+            dist/AuroraBroadcastProcessor-VST3-v${{ steps.version.outputs.version }}.zip
+            dist/AuroraBroadcastProcessor-Standalone-v${{ steps.version.outputs.version }}.zip
+            dist/AuroraBroadcastProcessor-Setup-v${{ steps.version.outputs.version }}.exe
+            dist/AuroraBroadcastProcessor-Checksums-v${{ steps.version.outputs.version }}.txt
+            dist/AuroraBroadcastProcessor-ReleaseManifest-v${{ steps.version.outputs.version }}.json
+            dist/AuroraBroadcastProcessor-TestResults-v${{ steps.version.outputs.version }}.zip
+          if-no-files-found: error
+          retention-days: 30
+
+  macos:
+    name: macOS Universal Release
+    runs-on: macos-15
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Resolve and validate version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ '${{ github.event_name }}' == 'workflow_dispatch' ]]; then version='${{ inputs.release_version }}'; else version='${{ github.ref_name }}'; version="${version#v}"; fi
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'Version must use X.Y.Z format' >&2; exit 1; }
+          [[ "$version" == "$(tr -d '[:space:]' < VERSION.txt)" ]] || { echo 'Tag/input and VERSION.txt disagree' >&2; exit 1; }
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Display toolchain
+        shell: bash
+        run: |
+          sw_vers
+          uname -m
+          xcodebuild -version
+          cmake --version
+
+      - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: build/macos-universal/_deps
+          key: juce-macos-universal-xcode-release-8.0.14-${{ hashFiles('CMakeLists.txt', 'cmake/*.cmake', 'VERSION.txt') }}
+
+      - name: Configure macOS Universal
+        shell: bash
+        run: ./scripts/github-configure-macos.sh
+
+      - name: Build VST3, AU, standalone, and tests
+        shell: bash
+        run: ./scripts/github-build-macos.sh
+
+      - name: Run extended tests
+        shell: bash
+        env:
+          AURORA_EXTENDED_TESTS: '1'
+        run: ./scripts/github-test-macos.sh
+
+      - name: Package, ad-hoc sign, and verify macOS release
+        shell: bash
+        run: ./scripts/package-release-macos.sh '${{ steps.version.outputs.version }}' PASSED
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: AuroraBroadcastProcessor-macOS-Universal-Release-v${{ steps.version.outputs.version }}
+          path: |
+            dist/AuroraBroadcastProcessor-macOS-Universal-v${{ steps.version.outputs.version }}.zip
+            dist/AuroraBroadcastProcessor-VST3-macOS-Universal-v${{ steps.version.outputs.version }}.zip
+            dist/AuroraBroadcastProcessor-AU-macOS-Universal-v${{ steps.version.outputs.version }}.zip
+            dist/AuroraBroadcastProcessor-Standalone-macOS-Universal-v${{ steps.version.outputs.version }}.zip
+            dist/AuroraBroadcastProcessor-Setup-macOS-Universal-v${{ steps.version.outputs.version }}.dmg
+            dist/AuroraBroadcastProcessor-Checksums-macOS-Universal-v${{ steps.version.outputs.version }}.txt
+            dist/AuroraBroadcastProcessor-ReleaseManifest-macOS-Universal-v${{ steps.version.outputs.version }}.json
+            dist/AuroraBroadcastProcessor-TestResults-macOS-Universal-v${{ steps.version.outputs.version }}.zip
+          if-no-files-found: error
+          retention-days: 30
+
+  verified:
+    name: Both platforms verified
+    needs: [windows, macos]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Release build summary
+        shell: bash
+        run: |
+          {
+            echo '## Cross-platform release verified'
+            echo '- Windows x64: VST3, standalone, Inno Setup installer'
+            echo '- macOS Universal: VST3, AU, standalone, DMG'
+            echo '- Windows signing: unsigned'
+            echo '- macOS signing: ad-hoc; not notarized'
+          } >> "$GITHUB_STEP_SUMMARY"

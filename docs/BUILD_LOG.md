@@ -12,3 +12,12 @@
 - GitHub Actions: **NOT EXECUTED - REMOTE REPOSITORY ACCESS UNAVAILABLE**.
 - Errors/fixes: no compiler diagnostics exist because compilation could not start.
 - Git commit: `c0c5d12` (`feat: implement initial broadcast processor source`). The commit records implementation only and does not claim a successful build.
+
+## 2026-07-15 cross-platform automation update
+
+- Added macOS Universal Xcode presets and VST3, Audio Unit, standalone, and test targets for `arm64` plus `x86_64`.
+- Added macOS build/test, ad-hoc signing, deterministic ZIP, DMG, manifest, checksum, and verification scripts.
+- Replaced the Windows-only release workflow with a gated cross-platform release workflow and added independent macOS CI. Publishing now requires both platform artifact sets from a successful run at the exact tag commit.
+- Updated `.gitignore`, attributes, artifact documentation, installation/build guidance, release steps, limitations, and third-party notices for both platforms.
+- Static validation: PowerShell AST parsing, Bash `-n`, Python byte-code compilation, JSON parsing, YAML parsing, and `git diff --check` passed. No Windows or macOS compiler build ran locally because the required native toolchains remain unavailable.
+- GitHub Actions: **NOT EXECUTED - NO GIT REMOTE IS CONFIGURED IN THIS WORKSPACE**.

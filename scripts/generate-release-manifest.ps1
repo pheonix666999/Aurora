@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param([Parameter(Mandatory)][string]$Version,[string]$ValidationStatus='VALIDATION NOT RUN - VALIDATOR UNAVAILABLE',[string]$InstallerStatus='NOT BUILT',[string]$TestResult='UNKNOWN')
 $ErrorActionPreference='Stop';$root=Split-Path -Parent $PSScriptRoot;$dist=Join-Path $root 'dist';if($Version-notmatch'^\d+\.\d+\.\d+$'){throw 'Version must be semantic x.y.z'}
-$files=Get-ChildItem -LiteralPath $dist -File|Where-Object{$_.Name-notmatch'Checksums|ReleaseManifest'-and$_.Name-match"-v$([regex]::Escape($Version))\."}|Sort-Object Name
+$files=Get-ChildItem -LiteralPath $dist -File|Where-Object{$_.Name-notmatch'Checksums|ReleaseManifest|TestResults|macOS'-and$_.Name-match"-v$([regex]::Escape($Version))\."}|Sort-Object Name
 $outputs=@($files|ForEach-Object{[ordered]@{file=$_.Name;sizeBytes=$_.Length;sha256=(Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()}})
 $gitSha=if($env:GITHUB_SHA){$env:GITHUB_SHA}else{git -C $root rev-parse HEAD 2>$null;if($LASTEXITCODE-ne 0){'UNCOMMITTED'}}
 $gitTag=if($env:GITHUB_REF_TYPE-eq'tag'){$env:GITHUB_REF_NAME}else{'NONE'}

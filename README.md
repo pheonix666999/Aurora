@@ -1,10 +1,10 @@
 # Aurora Broadcast Processor
 
-Aurora Broadcast Processor is an original Windows x64 audio effect for continuous digital and internet-radio processing. It combines slow source leveling, tonal shaping, four-band dynamics, stereo management, oversampled peak control, and look-ahead limiting in one resizable JUCE interface. It is not RF equipment, an FM stereo/RDS generator, or a certified loudness or true-peak compliance system.
+Aurora Broadcast Processor is an original Windows and macOS audio effect for continuous digital and internet-radio processing. It combines slow source leveling, tonal shaping, four-band dynamics, stereo management, oversampled peak control, and look-ahead limiting in one resizable JUCE interface. It is not RF equipment, an FM stereo/RDS generator, or a certified loudness or true-peak compliance system.
 
 ## Current development status
 
-Version **0.1.0** has a complete initial implementation candidate ready for its first engineering build. The current development machine lacks CMake, Visual Studio/MSVC, the Windows SDK, Inno Setup, validators, and test hosts, so no local compile, test, installer, validator, or host-compatibility success is claimed. Windows CI is ready to provide the authoritative clean build after this repository is pushed to GitHub.
+Version **0.1.0** has a complete initial implementation candidate ready for its first engineering build. The current development machine lacks CMake, Visual Studio/MSVC, the Windows SDK, Inno Setup, macOS/Xcode, validators, and test hosts, so no local compile, test, installer, validator, or host-compatibility success is claimed. GitHub Actions is configured to provide authoritative clean Windows and macOS builds after this repository is pushed.
 
 ## Features
 
@@ -16,15 +16,16 @@ Version **0.1.0** has a complete initial implementation candidate ready for its 
 - 4× oversampled soft peak stage and fixed-latency look-ahead limiter
 - Real peak/RMS, AGC, band reduction, limiter reduction, and correlation metering
 - Versioned complete state, ten factory presets, user files, and A/B snapshots
-- Windows x64 VST3 and standalone targets, automated tests, installer, packaging, and release workflows
+- Windows x64 VST3/standalone targets and macOS Universal VST3/AU/standalone targets
+- Automated tests, Windows installer, macOS DMG, checksums, manifests, and coordinated release workflows
 
-## Formats and operating system
+## Formats and operating systems
 
-- VST3 x64 audio effect
-- Standalone x64 application using JUCE's audio-device selector and the same processor/editor
-- Windows 10/11 x64; Visual Studio 2022 is the supported build toolchain
+- Windows 10/11 x64: VST3 and standalone, built with Visual Studio 2022
+- macOS 11 or newer, Universal `arm64` + `x86_64`: VST3, Audio Unit, and standalone, built with Xcode
+- The standalone applications use JUCE's audio-device selector and the same processor/editor as the plug-ins
 
-Designed for compatible Windows x64 VST3 hosts. Compatibility must be verified with the specific host and host version.
+Designed for compatible Windows x64 VST3 hosts and macOS VST3/Audio Unit hosts. Compatibility must be verified with the specific host, host version, operating system, and architecture.
 
 ## Build and test
 
@@ -38,21 +39,29 @@ Install the items in [docs/INSTALL_PREREQUISITES.md](docs/INSTALL_PREREQUISITES.
 
 JUCE 8.0.14 is fetched at exact commit `2cdfca8feb300fb424002ba2c2751569e5bacb64`. See [docs/BUILDING.md](docs/BUILDING.md) for targets and troubleshooting.
 
+On macOS with Xcode installed:
+
+```bash
+./scripts/github-configure-macos.sh
+./scripts/github-build-macos.sh
+./scripts/github-test-macos.sh
+```
+
 ## Installation
 
-Use the versioned installer when available, or copy the complete `Aurora Broadcast Processor.vst3` bundle to `%CommonProgramFiles%\VST3`. The standalone executable can run from a writable local folder. Detailed steps and uninstallation are in [docs/INSTALLATION.md](docs/INSTALLATION.md).
+On Windows, use the versioned installer or copy the complete VST3 bundle to `%CommonProgramFiles%\VST3`. On macOS, use the DMG or install the VST3, AU, and application bundles into their standard locations. Detailed steps and uninstallation are in [docs/INSTALLATION.md](docs/INSTALLATION.md).
 
-User presets are stored in `%APPDATA%\Ammar Audio Labs\Aurora Broadcast Processor\Presets`; packages and normal uninstall do not delete them.
+User presets are stored in `%APPDATA%\Ammar Audio Labs\Aurora Broadcast Processor\Presets` on Windows and under the user's application-data directory on macOS; packages and normal uninstall do not delete them.
 
 ## Known limitations and licensing
 
-The initial release has no VST2 or WinAmp DSP adapter, is unsigned, and has not yet been validated or tested in RadioBOSS, NextKast, REAPER, JUCE AudioPluginHost, or the standalone application. Presets require listening tests against legally supplied reference material and downstream codecs. See [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md).
+The initial release has no VST2 or WinAmp DSP adapter. Windows artifacts are unsigned; macOS artifacts are ad-hoc signed and not notarized. No host has yet been validated. Presets require listening tests against legally supplied reference material and downstream codecs. See [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md).
 
 JUCE 8 is dual-licensed under the JUCE licence and AGPLv3. The owner must select and comply with an applicable licence before distributing binaries. See [LICENSE_NOTICE.md](LICENSE_NOTICE.md) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## GitHub Actions artifacts
 
-Open the repository's **Actions** tab, choose **Windows CI** or **Build Windows Release**, open a successful run, and download its artifact. CI produces `AuroraBroadcastProcessor-Windows-x64-CI`; a release build produces the versioned verified ZIPs, installer, checksums, manifest, and test-result archive documented in [docs/ARTIFACTS.md](docs/ARTIFACTS.md).
+Open the repository's **Actions** tab and choose **Windows CI**, **macOS CI**, or **Build Cross-Platform Release**. CI produces platform-specific artifacts. A release run produces verified Windows and macOS ZIPs, installers, checksums, manifests, and internal test-result archives documented in [docs/ARTIFACTS.md](docs/ARTIFACTS.md).
 
 ## Troubleshooting
 
@@ -61,3 +70,4 @@ Open the repository's **Actions** tab, choose **Windows CI** or **Build Windows 
 - Plug-in not found: copy the entire `.vst3` directory, rescan VST3 paths, and confirm the host is x64.
 - No standalone audio: open audio settings, choose valid input/output devices and matching enabled channels.
 - Preset write failure: verify `%APPDATA%` is writable and the preset name is legal.
+- macOS blocks an artifact: these initial bundles are ad-hoc signed, not Developer ID signed or notarized; verify the checksum and follow the trusted-release instructions in the installation guide.

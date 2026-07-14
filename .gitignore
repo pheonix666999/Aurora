@@ -1,48 +1,105 @@
-# Build systems and IDEs
+# Repository-local build and release output
 /build/
 /dist/
-/.vs/
-/.vscode/
 /out/
+/artifacts/
+/_deps/
+/.cache/
+/.cmake/
+__pycache__/
+*.py[cod]
+
+# CMake, CTest, Ninja, and generated project files
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
 CTestTestfile.cmake
+CTestCostData.txt
+DartConfiguration.tcl
+Testing/
+compile_commands.json
+CMakeUserPresets.json
+*.ninja
+*.ninja_deps
+*.ninja_log
 *.sln
-*.vcxproj*
-*.ninja*
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+*.xcuserstate
+*.xcsettings
+*.xcscmblueprint
+DerivedData/
 
-# Compiler and generated output
+# Compiler intermediates, debug symbols, and built products
 *.obj
 *.o
+*.a
 *.pdb
 *.ilk
 *.exp
 *.lib
 *.dll
+*.so
+*.dylib
 *.exe
-*.vst3
+*.app/
+*.component/
+*.vst3/
+*.framework/
 *.dSYM/
+*.dmg
+*.pkg
 JuceLibraryCode/
 
-# Local and sensitive data
+# IDE and editor-local state
+/.vs/
+/.vscode/
+/.idea/
+*.user
+*.suo
+*.opensdf
+*.VC.db
+*.VC.VC.opendb
+ipch/
+
+# Secrets, signing identities, and environment overrides
 .env
 .env.*
 !.env.example
+/.secrets/
+/secrets/
 *.pfx
 *.p12
 *.pem
 *.key
 *.cer
 *.crt
+*.p8
+*.mobileprovision
+*.provisionprofile
+*.keychain
+*.keychain-db
+
+# Local user/test data (factory presets and tests remain tracked)
 /UserPresets/
 /TestAudio/
+/test-results/
 /.act/
-*.user
-*.suo
 *.tmp
 *.temp
 *.log
-Thumbs.db
-.DS_Store
 
+# Operating-system metadata
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes

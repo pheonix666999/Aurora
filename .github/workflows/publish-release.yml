@@ -7,7 +7,7 @@ on:
         required: true
         type: string
       release_run_id:
-        description: Successful Build Windows Release run ID
+        description: Successful Build Cross-Platform Release run ID
         required: true
         type: string
 permissions:
@@ -27,32 +27,64 @@ jobs:
           if ('${{ inputs.tag }}' -notmatch '^v\d+\.\d+\.\d+$') { throw 'Invalid tag' }
           git show-ref --verify --quiet "refs/tags/${{ inputs.tag }}"; if ($LASTEXITCODE -ne 0) { throw 'Tag does not exist' }
           $run = gh api "repos/${{ github.repository }}/actions/runs/${{ inputs.release_run_id }}" | ConvertFrom-Json
-          if ($run.name -ne 'Build Windows Release' -or $run.conclusion -ne 'success' -or $run.head_sha -ne (git rev-list -n 1 '${{ inputs.tag }}')) { throw 'Run is not a successful release build for this exact tag commit' }
+          if ($run.name -ne 'Build Cross-Platform Release' -or $run.conclusion -ne 'success' -or $run.head_sha -ne (git rev-list -n 1 '${{ inputs.tag }}')) { throw 'Run is not a successful cross-platform release build for this exact tag commit' }
           if (gh release view '${{ inputs.tag }}' 2>$null) { throw 'Release already exists; refusing overwrite' }
       - name: Download exact verified release artifact
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh run download '${{ inputs.release_run_id }}' --dir dist/download
-      - name: Verify downloaded checksums and assets
+      - name: Verify both platform artifacts and checksums
         shell: pwsh
         run: |
-          $dir = Get-ChildItem dist/download -Directory | Select-Object -First 1
-          $checks = Get-ChildItem $dir.FullName -Filter '*Checksums*.txt' | Select-Object -First 1
-          if (-not $checks) { throw 'Checksum file missing' }
-          foreach ($line in Get-Content $checks.FullName) { if ($line -notmatch '^([0-9a-f]{64})  (.+)$') { throw 'Bad checksum format' }; if ((Get-FileHash (Join-Path $dir.FullName $Matches[2]) -Algorithm SHA256).Hash.ToLowerInvariant() -ne $Matches[1]) { throw "Checksum failed: $($Matches[2])" } }
+          $version = '${{ inputs.tag }}'.TrimStart('v')
+          $required = @(
+            "AuroraBroadcastProcessor-Windows-x64-v$version.zip",
+            "AuroraBroadcastProcessor-VST3-v$version.zip",
+            "AuroraBroadcastProcessor-Standalone-v$version.zip",
+            "AuroraBroadcastProcessor-Setup-v$version.exe",
+            "AuroraBroadcastProcessor-Checksums-v$version.txt",
+            "AuroraBroadcastProcessor-ReleaseManifest-v$version.json",
+            "AuroraBroadcastProcessor-macOS-Universal-v$version.zip",
+            "AuroraBroadcastProcessor-VST3-macOS-Universal-v$version.zip",
+            "AuroraBroadcastProcessor-AU-macOS-Universal-v$version.zip",
+            "AuroraBroadcastProcessor-Standalone-macOS-Universal-v$version.zip",
+            "AuroraBroadcastProcessor-Setup-macOS-Universal-v$version.dmg",
+            "AuroraBroadcastProcessor-Checksums-macOS-Universal-v$version.txt",
+            "AuroraBroadcastProcessor-ReleaseManifest-macOS-Universal-v$version.json"
+          )
+          $allFiles = @(Get-ChildItem dist/download -Recurse -File)
+          foreach ($name in $required) {
+            $matches = @($allFiles | Where-Object Name -eq $name)
+            if ($matches.Count -ne 1 -or $matches[0].Length -eq 0) { throw "Required unique non-empty asset missing: $name" }
+          }
+          $checksums = @($allFiles | Where-Object { $_.Name -in @("AuroraBroadcastProcessor-Checksums-v$version.txt", "AuroraBroadcastProcessor-Checksums-macOS-Universal-v$version.txt") })
+          if ($checksums.Count -ne 2) { throw 'Both platform checksum files are required' }
+          foreach ($checks in $checksums) {
+            foreach ($line in Get-Content $checks.FullName) {
+              if ($line -notmatch '^([0-9a-f]{64})  (.+)$') { throw "Bad checksum format in $($checks.Name)" }
+              $asset = Join-Path $checks.DirectoryName $Matches[2]
+              if (-not (Test-Path -LiteralPath $asset)) { throw "Checksum target missing: $($Matches[2])" }
+              if ((Get-FileHash -LiteralPath $asset -Algorithm SHA256).Hash.ToLowerInvariant() -ne $Matches[1]) { throw "Checksum failed: $($Matches[2])" }
+            }
+          }
+          New-Item -ItemType Directory -Force dist/publish | Out-Null
+          foreach ($name in $required) {
+            $asset = $allFiles | Where-Object Name -eq $name | Select-Object -First 1
+            Copy-Item -LiteralPath $asset.FullName -Destination dist/publish
+          }
       - name: Create draft, upload all public assets, then publish
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $dir = Get-ChildItem dist/download -Directory | Select-Object -First 1
           $prerelease = '${{ inputs.tag }}' -match '-'
           $ghArgs = @('release','create','${{ inputs.tag }}','--draft','--verify-tag','--title',"Aurora Broadcast Processor ${{ inputs.tag }}",'--notes-file','CHANGELOG.md')
           if ($prerelease) { $ghArgs += '--prerelease' }
           & gh @ghArgs
           if ($LASTEXITCODE -ne 0) { throw 'Draft release creation failed' }
-          $assets = Get-ChildItem $dir.FullName -File | Where-Object { $_.Name -notmatch 'TestResults' }
-          & gh release upload '${{ inputs.tag }}' @($assets.FullName)
+          $assets = Get-ChildItem dist/publish -File
+          $assetPaths = @($assets.FullName)
+          & gh release upload '${{ inputs.tag }}' @assetPaths
           if ($LASTEXITCODE -ne 0) { throw 'Asset upload failed; release remains draft' }
           gh release edit '${{ inputs.tag }}' --draft=false

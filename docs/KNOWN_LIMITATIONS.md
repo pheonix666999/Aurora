@@ -8,7 +8,7 @@
 - The oversampled peak stage reduces inter-sample risk but has not received formal true-peak validation.
 - Factory presets require later tuning against legally supplied reference stations/programme and intended codecs.
 - Results depend on source material, gain staging, sample rate, the host, and downstream encoding; excessive drive can sound dense or distorted.
-- Host compatibility varies. Only Windows x64 VST3 and standalone are scoped.
-- Initial binaries and installer are UNSIGNED; Windows reputation warnings are expected.
+- Host compatibility varies. Scoped formats are Windows x64 VST3/standalone and macOS Universal VST3/AU/standalone.
+- Windows binaries and installer are UNSIGNED; Windows reputation warnings are expected.
+- macOS bundles are ad-hoc signed only and the DMG is not notarized. Gatekeeper warnings are expected until Developer ID signing/notarization is configured.
 - JUCE licensing must be selected and verified before binary distribution.
-

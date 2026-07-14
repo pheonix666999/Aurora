@@ -1,0 +1,75 @@
+name: macOS CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-macos-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    runs-on: macos-15
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Display runner toolchain
+        shell: bash
+        run: |
+          sw_vers
+          uname -m
+          xcodebuild -version
+          cmake --version
+
+      - uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+        with:
+          path: build/macos-universal/_deps
+          key: juce-macos-universal-xcode-ci-8.0.14-${{ hashFiles('CMakeLists.txt', 'cmake/*.cmake', 'VERSION.txt') }}
+
+      - name: Configure macOS Universal
+        shell: bash
+        run: ./scripts/github-configure-macos.sh
+
+      - name: Build VST3, AU, standalone, and tests
+        shell: bash
+        run: ./scripts/github-build-macos.sh
+
+      - name: Run tests
+        shell: bash
+        run: ./scripts/github-test-macos.sh
+
+      - name: Package and verify CI output
+        shell: bash
+        run: ./scripts/package-release-macos.sh "$(tr -d '[:space:]' < VERSION.txt)" PASSED
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: AuroraBroadcastProcessor-macOS-Universal-CI
+          path: |
+            dist/AuroraBroadcastProcessor-macOS-Universal-v*.zip
+            dist/AuroraBroadcastProcessor-VST3-macOS-Universal-v*.zip
+            dist/AuroraBroadcastProcessor-AU-macOS-Universal-v*.zip
+            dist/AuroraBroadcastProcessor-Standalone-macOS-Universal-v*.zip
+            dist/AuroraBroadcastProcessor-Setup-macOS-Universal-v*.dmg
+            dist/AuroraBroadcastProcessor-Checksums-macOS-Universal-v*.txt
+            dist/AuroraBroadcastProcessor-ReleaseManifest-macOS-Universal-v*.json
+          if-no-files-found: error
+          retention-days: 14
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: AuroraBroadcastProcessor-macOS-Universal-Diagnostics
+          path: |
+            build/macos-universal/CMakeFiles/CMakeConfigureLog.yaml
+            build/macos-universal/Testing
+          if-no-files-found: warn
+          retention-days: 14

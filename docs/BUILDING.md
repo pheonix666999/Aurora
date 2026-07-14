@@ -17,3 +17,22 @@ Targets are `AuroraBroadcastProcessor_VST3`, `AuroraBroadcastProcessor_Standalon
 
 Outputs normally appear below `build/windows-x64/AuroraBroadcastProcessor_artefacts/Release`. If configuration fails before downloading JUCE, verify Git/network access. If MSVC is absent, install the Desktop development with C++ workload rather than changing generators.
 
+## macOS Universal
+
+Install Xcode and its command-line tools, then run on macOS:
+
+```bash
+./scripts/github-configure-macos.sh
+./scripts/github-build-macos.sh
+./scripts/github-test-macos.sh
+```
+
+The `macos-universal` preset uses the Xcode generator, deployment target macOS 11.0, and `CMAKE_OSX_ARCHITECTURES=arm64;x86_64`. It builds `AuroraBroadcastProcessor_VST3`, `AuroraBroadcastProcessor_AU`, `AuroraBroadcastProcessor_Standalone`, and `AuroraBroadcastProcessorTests`. Outputs are under `build/macos-universal/AuroraBroadcastProcessor_artefacts/Release`.
+
+For a local macOS package after successful tests:
+
+```bash
+./scripts/package-release-macos.sh 0.1.0 PASSED
+```
+
+The packaging script verifies both architecture slices, applies an ad-hoc signature, validates bundles and archives, builds a DMG, and checks SHA-256 values. It does not perform Apple Developer ID signing or notarization.
