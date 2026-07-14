@@ -11,4 +11,4 @@
 - Packaging/installer result: **NOT RUN - BUILD OUTPUT AND INNO SETUP UNAVAILABLE**. The verifier and packager both returned non-zero for the missing VST3, confirming their required-output failure path.
 - GitHub Actions: **NOT EXECUTED - REMOTE REPOSITORY ACCESS UNAVAILABLE**.
 - Errors/fixes: no compiler diagnostics exist because compilation could not start.
-- Git commit: source commit pending at the time of this entry; no commit claims a successful build.
+- Git commit: `c0c5d12` (`feat: implement initial broadcast processor source`). The commit records implementation only and does not claim a successful build.
