@@ -85,6 +85,7 @@ ipch/
 *.keychain-db
 
 # Local user/test data (factory presets and tests remain tracked)
+/prompt.txt
 /UserPresets/
 /TestAudio/
 /test-results/
