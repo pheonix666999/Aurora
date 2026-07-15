@@ -67,8 +67,9 @@ jobs:
           path: |
             build/windows-x64/CMakeFiles/CMakeConfigureLog.yaml
             build/windows-x64/Testing
+            build/windows-x64/build.log
+            build/windows-x64/test.log
             docs/ENVIRONMENT.md
             dist/ci/TEST_SUMMARY.txt
           if-no-files-found: warn
           retention-days: 14
-

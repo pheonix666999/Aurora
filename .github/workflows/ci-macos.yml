@@ -71,5 +71,7 @@ jobs:
           path: |
             build/macos-universal/CMakeFiles/CMakeConfigureLog.yaml
             build/macos-universal/Testing
+            build/macos-universal/build.log
+            build/macos-universal/test.log
           if-no-files-found: warn
           retention-days: 14
