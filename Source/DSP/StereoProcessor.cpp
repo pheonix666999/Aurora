@@ -3,10 +3,12 @@
 namespace aurora
 {
 void StereoProcessor::prepare(double sr){rate=sr;width.reset(rate,0.04);balance.reset(rate,0.04);moduleMix.reset(rate,0.04);bassCutoff.reset(rate,0.05);bassCutoff.setCurrentAndTargetValue(120);reset();}
-void StereoProcessor::reset(){bassState.fill(0);correlationSmoothed=1;protection=1;}
+void StereoProcessor::reset(){bassState.fill(0);correlationSmoothed=1;protection=1;parametersInitialised=false;}
 float StereoProcessor::process(juce::AudioBuffer<float>& b,const ParameterSnapshot& p) noexcept
 {
-    if(b.getNumChannels()<2)return 1; width.setTargetValue(p.width);balance.setTargetValue(p.balance);moduleMix.setTargetValue(p.stereo?1.0f:0.0f);bassCutoff.setTargetValue(p.monoBassFrequency);const auto alpha=1.0f-std::exp(-juce::MathConstants<float>::twoPi*bassCutoff.skip(b.getNumSamples())/static_cast<float>(rate));double sumLR=0,sumL2=0,sumR2=0;
+    if(b.getNumChannels()<2)return 1;
+    if(!parametersInitialised){width.setCurrentAndTargetValue(p.width);balance.setCurrentAndTargetValue(p.balance);moduleMix.setCurrentAndTargetValue(p.stereo?1.0f:0.0f);bassCutoff.setCurrentAndTargetValue(p.monoBassFrequency);parametersInitialised=true;}
+    width.setTargetValue(p.width);balance.setTargetValue(p.balance);moduleMix.setTargetValue(p.stereo?1.0f:0.0f);bassCutoff.setTargetValue(p.monoBassFrequency);const auto alpha=1.0f-std::exp(-juce::MathConstants<float>::twoPi*bassCutoff.skip(b.getNumSamples())/static_cast<float>(rate));double sumLR=0,sumL2=0,sumR2=0;
     for(int i=0;i<b.getNumSamples();++i)
     {
         const auto inL=b.getSample(0,i),inR=b.getSample(1,i);auto mid=(inL+inR)*0.5f,side=(inL-inR)*0.5f;bassState[0]+=alpha*(mid-bassState[0]);bassState[1]+=alpha*(side-bassState[1]);if(p.monoBass)side-=bassState[1];
