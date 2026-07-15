@@ -4,7 +4,7 @@ namespace aurora
 {
 void MeteringEngine::reset() noexcept
 {
-    for (auto* values : { &inputPeak, &inputRms, &outputPeak, &outputRms }) for (auto& v : *values) v.store(0);
+    for (auto* values : { &inputPeak, &inputRms, &outputPeak, &outputRms }) for (auto& v : *values) v.store(0.0f);
     for (auto& v : bandReductionDb) v.store(0);
     agcGainDb.store(0); limiterReductionDb.store(0); correlation.store(1); clipWarning.store(false); oversampledPeakWarning.store(false);
 }

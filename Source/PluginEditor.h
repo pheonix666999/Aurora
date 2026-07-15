@@ -27,7 +27,7 @@ public:
 private:
     juce::Label label;juce::ComboBox box;std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> attachment;
 };
-class MeterDisplay final:public juce::Component
+class MeterDisplay final:public juce::Component,public juce::SettableTooltipClient
 {
 public:
     explicit MeterDisplay(MeteringEngine&);void paint(juce::Graphics&)override;void mouseDown(const juce::MouseEvent&)override;

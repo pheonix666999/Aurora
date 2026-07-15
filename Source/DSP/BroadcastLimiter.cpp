@@ -2,8 +2,8 @@
 
 namespace aurora
 {
-void BroadcastLimiter::prepare(double sr,int maxBlock){rate=sr;maximumDelay=static_cast<int>(std::ceil(sr*0.010))+2;const auto size=static_cast<size_t>(maximumDelay+maxBlock+2);for(auto& d:audioDelay)d.assign(size,0);detectorDelay.assign(size,0);for(auto* s:{&moduleMix,&drive,&ceiling,&lookaheadSamples})s->reset(rate,0.02);lookaheadSamples.setCurrentAndTargetValue(static_cast<float>(sr*0.005));reset();}
-void BroadcastLimiter::reset(){for(auto& d:audioDelay)std::fill(d.begin(),d.end(),0);std::fill(detectorDelay.begin(),detectorDelay.end(),0);writeIndex=0;gain=1;}
+void BroadcastLimiter::prepare(double sr,int maxBlock){rate=sr;maximumDelay=static_cast<int>(std::ceil(sr*0.010))+2;const auto size=static_cast<size_t>(maximumDelay+maxBlock+2);for(auto& d:audioDelay)d.assign(size,0.0f);detectorDelay.assign(size,0.0f);for(auto* s:{&moduleMix,&drive,&ceiling,&lookaheadSamples})s->reset(rate,0.02);lookaheadSamples.setCurrentAndTargetValue(static_cast<float>(sr*0.005));reset();}
+void BroadcastLimiter::reset(){for(auto& d:audioDelay)std::fill(d.begin(),d.end(),0.0f);std::fill(detectorDelay.begin(),detectorDelay.end(),0.0f);writeIndex=0;gain=1.0f;}
 float BroadcastLimiter::process(juce::AudioBuffer<float>& b,const ParameterSnapshot& p) noexcept
 {
     moduleMix.setTargetValue(p.limiter?1.0f:0.0f);drive.setTargetValue(juce::Decibels::decibelsToGain(p.limiterDrive));ceiling.setTargetValue(juce::Decibels::decibelsToGain(p.limiterCeiling));lookaheadSamples.setTargetValue(static_cast<float>(rate*p.limiterLookahead*0.001));const int channels=juce::jmin(2,b.getNumChannels()),size=static_cast<int>(detectorDelay.size());float maxReduction=0;

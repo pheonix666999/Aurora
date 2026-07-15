@@ -5,9 +5,9 @@ namespace aurora
 {
 void BroadcastProcessorEngine::prepare(double sr,int maxBlock,int channels)
 {
-    rate=sr;const auto c=juce::jlimit(1,2,channels);bypass.setSize(c,maxBlock,false,false,true);input.prepare(sr,c);agc.prepare(sr);eq.prepare(sr,maxBlock,c);crossover.prepare(sr,maxBlock,c);multiband.prepare(sr);enhancer.prepare(sr);stereo.prepare(sr);clipper.prepare(sr,maxBlock,c);limiter.prepare(sr,maxBlock);totalLatency=clipper.latencySamples()+limiter.latencySamples();for(auto& d:bypassDelay)d.assign(static_cast<size_t>(totalLatency+maxBlock+4),0);for(auto* s:{&outputGain,&bypassMix,&polarityL,&polarityR})s->reset(sr,0.03);reset();
+    rate=sr;const auto c=juce::jlimit(1,2,channels);bypass.setSize(c,maxBlock,false,false,true);input.prepare(sr,c);agc.prepare(sr);eq.prepare(sr,maxBlock,c);crossover.prepare(sr,maxBlock,c);multiband.prepare(sr);enhancer.prepare(sr);stereo.prepare(sr);clipper.prepare(sr,maxBlock,c);limiter.prepare(sr,maxBlock);totalLatency=clipper.latencySamples()+limiter.latencySamples();for(auto& d:bypassDelay)d.assign(static_cast<size_t>(totalLatency+maxBlock+4),0.0f);for(auto* s:{&outputGain,&bypassMix,&polarityL,&polarityR})s->reset(sr,0.03);reset();
 }
-void BroadcastProcessorEngine::reset(){input.reset();agc.reset();eq.reset();crossover.reset();multiband.reset();enhancer.reset();stereo.reset();clipper.reset();limiter.reset();metering.reset();for(auto& d:bypassDelay)std::fill(d.begin(),d.end(),0);bypassIndex=0;}
+void BroadcastProcessorEngine::reset(){input.reset();agc.reset();eq.reset();crossover.reset();multiband.reset();enhancer.reset();stereo.reset();clipper.reset();limiter.reset();metering.reset();for(auto& d:bypassDelay)std::fill(d.begin(),d.end(),0.0f);bypassIndex=0;}
 void BroadcastProcessorEngine::delayBypass(juce::AudioBuffer<float>& b) noexcept
 {
     if(totalLatency<=0)return;const auto size=static_cast<int>(bypassDelay[0].size());for(int i=0;i<b.getNumSamples();++i){const auto read=(bypassIndex-totalLatency+size)%size;for(int ch=0;ch<b.getNumChannels();++ch){bypassDelay[ch][bypassIndex]=b.getSample(ch,i);b.setSample(ch,i,bypassDelay[ch][read]);}bypassIndex=(bypassIndex+1)%size;}

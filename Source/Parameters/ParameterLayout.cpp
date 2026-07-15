@@ -11,7 +11,7 @@ void addFloat(Layout& layout, const char* parameterId, const char* name, float m
 {
     juce::NormalisableRange<float> range { min, max, step };
     if (skew != 1.0f) range.setSkewForCentre(skew);
-    layout.add(std::make_unique<juce::AudioParameterFloat>(id(parameterId), name, range, initial, unit));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(id(parameterId), name, range, initial, juce::AudioParameterFloatAttributes().withLabel(unit)));
 }
 void addBool(Layout& layout, const char* parameterId, const char* name, bool initial)
 {
@@ -107,4 +107,3 @@ Layout createParameterLayout()
     return p;
 }
 }
-
