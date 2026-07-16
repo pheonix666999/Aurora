@@ -241,7 +241,7 @@ void MeterDisplay::paint(juce::Graphics& g)
     {
         const auto centreX = static_cast<float>(meterArea.getX() + channel * barSlot + barSlot / 2);
         auto bar = juce::Rectangle<float>(barWidth, static_cast<float>(meterArea.getHeight()))
-                       .withCentre({centreX, meterArea.getCentreY()});
+                       .withCentre({centreX, static_cast<float>(meterArea.getCentreY())});
         g.setColour(colours::meterTrack);
         g.fillRoundedRectangle(bar, 4.0f);
         const auto fillHeight = bar.getHeight() * normalise(rms[channel]);
