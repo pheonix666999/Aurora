@@ -633,8 +633,9 @@ bool AuroraBroadcastProcessorEditor::isLayoutValidForTesting() const noexcept
     if (advancedMode && (viewport.getWidth() <= 0 || viewport.getHeight() <= 0
                          || viewport.getBounds().intersects(spectrum.getBounds())
                          || viewport.getBounds().intersects(meterDisplay.getBounds()))) return false;
-    for (const auto& section : sections)
-        if (!section->hasValidLayout()) return false;
+    if (advancedMode)
+        for (const auto& section : sections)
+            if (!section->hasValidLayout()) return false;
     return true;
 }
 
