@@ -32,6 +32,17 @@ public:
         aurora::AuroraBroadcastProcessorEditor compactEditor(compactProcessor);
         compactEditor.setSize(aurora::config::minimumWidth, aurora::config::minimumHeight);
         expect(compactEditor.isLayoutValidForTesting());
+
+        beginTest("Live control-strip display renders at responsive sizes");
+        aurora::ControlStripDisplay display(processor.parameters, processor.engine().meters());
+        for (const auto size : {juce::Point<int>{300, 240}, juce::Point<int>{370, 380}})
+        {
+            display.setSize(size.x, size.y);
+            const auto snapshot = display.createComponentSnapshot(display.getLocalBounds());
+            expect(snapshot.isValid());
+            expect(snapshot.getWidth() == size.x && snapshot.getHeight() == size.y);
+            expect(snapshot.getPixelAt(size.x / 2, size.y / 2).getAlpha() > 0);
+        }
     }
 };
 

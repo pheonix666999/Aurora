@@ -26,10 +26,9 @@ All IDs are stable lowercase camelCase JUCE parameters with version hint 1. Gain
 | `band1MixPercent`…`band4MixPercent` | 0..100 / 100 | % | Band dynamics |
 | `enhancerEnabled`, `enhancerDriveDb`, `enhancerMixPercent`, `enhancerTonePercent` | bool on; 0..12 /2; 0..100 /12; -100..100 /0 | dB, % | Enhancer |
 | `stereoEnabled`, `stereoWidthPercent`, `stereoBalancePercent` | bool on; 0..150 /108; -100..100 /0 | % | Stereo |
-| `monoBassEnabled`, `monoBassFrequencyHz`, `correlationProtectionEnabled` | bool on; 40..250 /120; bool on | Hz | Stereo |
+| `monoBassEnabled`, `monoBassFrequencyHz`, `correlationProtectionEnabled` | low-end preservation on; 40..250 /120; correlation guard on | Hz | Stereo |
 | `clipperEnabled`, `clipperDriveDb`, `clipperMode` | bool on; 0..9 /1.5; Soft/Firm | dB | Oversampled Peak |
 | `limiterEnabled`, `limiterDriveDb`, `limiterCeilingDb` | bool on; 0..12 /3; -3..-0.1 /-0.8 | dB | Limiter |
 | `limiterLookaheadMs`, `limiterReleaseMs`, `limiterStyle` | 1..10 /5; 20..500 /120; Transparent/Punch | ms | Limiter |
 | `outputTrimDb`, `invertLeft`, `invertRight`, `globalBypass` | -18..6 /0; bool off; bool off; bool off | dB | Output |
 | `analyzerEnabled`, `analyzerMode`, `analyzerSmoothing`, `analyzerFreeze` | bool on; Input/Output/Both; 0..100 /65; bool off | % | UI analysis |
-

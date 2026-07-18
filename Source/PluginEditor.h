@@ -73,6 +73,24 @@ private:
     MeteringEngine& meters;
 };
 
+class ControlStripDisplay final : public juce::Component, public juce::SettableTooltipClient, private juce::Timer
+{
+public:
+    ControlStripDisplay(juce::AudioProcessorValueTreeState&, MeteringEngine&);
+    void paint(juce::Graphics&) override;
+
+private:
+    void timerCallback() override;
+    float parameter(const char*) const noexcept;
+    void drawEqualizer(juce::Graphics&, juce::Rectangle<float>);
+    void drawThresholds(juce::Graphics&, juce::Rectangle<float>);
+    void drawHarmonics(juce::Graphics&, juce::Rectangle<float>);
+    void drawStereoAndBass(juce::Graphics&, juce::Rectangle<float>);
+
+    juce::AudioProcessorValueTreeState& state;
+    MeteringEngine& meters;
+};
+
 class AuroraBroadcastProcessorEditor final : public juce::AudioProcessorEditor, private juce::Timer
 {
 public:
@@ -102,6 +120,7 @@ private:
     juce::ToggleButton bypass{"Global Bypass"};
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> bypassAttachment;
     SpectrumEQComponent spectrum;
+    ControlStripDisplay controlStripDisplay;
     MeterDisplay meterDisplay;
     juce::Component controlContent;
     juce::Viewport viewport;

@@ -83,8 +83,8 @@ Layout createParameterLayout()
     addBool(p, params::stereoEnabled, "Stereo Processing", true);
     addFloat(p, params::stereoWidthPercent, "Stereo Width", 0, 150, 0.1f, 1, 108, "%");
     addFloat(p, params::stereoBalancePercent, "Stereo Balance", -100, 100, 0.1f, 1, 0, "%");
-    addBool(p, params::monoBassEnabled, "Mono Bass", true);
-    addFloat(p, params::monoBassFrequencyHz, "Mono Bass Frequency", 40, 250, 0.1f, 120, 120, "Hz");
+    addBool(p, params::monoBassEnabled, "Low-End Preservation", true);
+    addFloat(p, params::monoBassFrequencyHz, "Low-End Preservation Cutoff", 40, 250, 0.1f, 120, 120, "Hz");
     addBool(p, params::correlationProtectionEnabled, "Correlation Protection", true);
 
     addBool(p, params::clipperEnabled, "Oversampled Peak", true);

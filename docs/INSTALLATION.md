@@ -1,6 +1,6 @@
 # Installation and removal
 
-Run `AuroraBroadcastProcessor-Setup-vX.Y.Z.exe` as an administrator. The installer places the complete VST3 bundle in `%CommonProgramFiles%\VST3` and the standalone application/documentation under `%ProgramFiles%\Ammar Audio Labs\Aurora Broadcast Processor`. Start-menu and desktop shortcuts are optional.
+Run `AuroraBroadcastProcessor-Setup-vX.Y.Z.exe` as an administrator. This is the normal Windows installer application: it places the complete VST3 bundle in `%CommonProgramFiles%\VST3`, installs the standalone application/documentation under `%ProgramFiles%\Ammar Audio Labs\Aurora Broadcast Processor`, and registers an uninstaller. Start-menu and desktop shortcuts are optional.
 
 For manual VST3 installation, copy the complete `Aurora Broadcast Processor.vst3` directory—not only its inner binary—to `%CommonProgramFiles%\VST3`, then rescan VST3 plug-ins in the x64 host. For portable standalone use, extract the standalone ZIP and run the executable; choose valid input/output devices, sample rate, buffer size, and channels in JUCE audio settings.
 
@@ -8,7 +8,7 @@ Use Windows Installed Apps or the supplied uninstaller to remove installed binar
 
 ## macOS
 
-Open `AuroraBroadcastProcessor-Setup-macOS-Universal-vX.Y.Z.dmg`. Copy:
+Open `AuroraBroadcastProcessor-Setup-macOS-Universal-vX.Y.Z.dmg`. The DMG is the macOS installation package; it contains the application and both plug-in formats. Copy:
 
 - `Aurora Broadcast Processor.vst3` to `/Library/Audio/Plug-Ins/VST3` or `~/Library/Audio/Plug-Ins/VST3`.
 - `Aurora Broadcast Processor.component` to `/Library/Audio/Plug-Ins/Components` or `~/Library/Audio/Plug-Ins/Components`.

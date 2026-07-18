@@ -4,7 +4,7 @@ Aurora Broadcast Processor is an original Windows and macOS audio effect for con
 
 ## Current development status
 
-Version **0.1.0** has a complete initial implementation candidate ready for its first engineering build. The current development machine lacks CMake, Visual Studio/MSVC, the Windows SDK, Inno Setup, macOS/Xcode, validators, and test hosts, so no local compile, test, installer, validator, or host-compatibility success is claimed. GitHub Actions is configured to provide authoritative clean Windows and macOS builds after this repository is pushed.
+Version **0.1.0** is built and tested by clean GitHub Actions jobs on Windows x64 and macOS Universal. CI verifies the processor, responsive editor layouts, plug-in/standalone targets, packages, checksums, and manifests. Host-specific listening and compatibility testing is still required before a production release.
 
 ## Features
 
@@ -12,7 +12,8 @@ Version **0.1.0** has a complete initial implementation candidate ready for its 
 - Sanitizing input stage, DC block, 12 dB/octave high-pass filter, and slow gated RMS AGC
 - Six interactive EQ bands over a real 4096-point input/output FFT display
 - Four Linkwitz-Riley crossover bands with stereo-linked soft-knee compression
-- Harmonic density, width/balance, mono bass, and gradual correlation protection
+- Harmonic density, width/balance, enabled-by-default low-end preservation, and gradual correlation protection
+- Live control-strip activity display for EQ, band thresholds/reduction, harmonics, stereo width, and bass protection
 - 4× oversampled soft peak stage and fixed-latency look-ahead limiter
 - Real peak/RMS, AGC, band reduction, limiter reduction, and correlation metering
 - Versioned complete state, ten factory presets, user files, and A/B snapshots
@@ -49,7 +50,7 @@ On macOS with Xcode installed:
 
 ## Installation
 
-On Windows, use the versioned installer or copy the complete VST3 bundle to `%CommonProgramFiles%\VST3`. On macOS, use the DMG or install the VST3, AU, and application bundles into their standard locations. Detailed steps and uninstallation are in [docs/INSTALLATION.md](docs/INSTALLATION.md).
+The release is delivered as installers plus separate portable/manual packages. On Windows, `AuroraBroadcastProcessor-Setup-vX.Y.Z.exe` installs the VST3, standalone application, documentation, shortcuts, and uninstaller. On macOS, the versioned DMG contains the VST3, AU, and standalone application with links to their standard install locations. Detailed steps and uninstallation are in [docs/INSTALLATION.md](docs/INSTALLATION.md).
 
 User presets are stored in `%APPDATA%\Ammar Audio Labs\Aurora Broadcast Processor\Presets` on Windows and under the user's application-data directory on macOS; packages and normal uninstall do not delete them.
 

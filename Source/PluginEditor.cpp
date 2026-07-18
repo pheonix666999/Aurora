@@ -276,10 +276,213 @@ void MeterDisplay::paint(juce::Graphics& g)
     statRow("Peak safety", warning ? "WARNING - CLICK" : "CLEAR", warning ? colours::red : colours::green);
 }
 
+ControlStripDisplay::ControlStripDisplay(juce::AudioProcessorValueTreeState& parameters, MeteringEngine& metering)
+    : state(parameters), meters(metering)
+{
+    setTooltip("Live overview of EQ bands, compressor thresholds, harmonic enhancement, stereo width, and low-end preservation.");
+    startTimerHz(20);
+}
+
+float ControlStripDisplay::parameter(const char* id) const noexcept
+{
+    if (const auto* value = state.getRawParameterValue(id)) return value->load(std::memory_order_relaxed);
+    return 0.0f;
+}
+
+void ControlStripDisplay::timerCallback()
+{
+    repaint();
+}
+
+void ControlStripDisplay::drawEqualizer(juce::Graphics& g, juce::Rectangle<float> area)
+{
+    g.setColour(colours::text);
+    g.setFont(juce::FontOptions(10.5f, juce::Font::bold));
+    g.drawText("EQ BANDS", area.removeFromTop(17.0f).toNearestInt(), juce::Justification::centredLeft);
+    auto graph = area.reduced(6.0f, 4.0f).withTrimmedBottom(14.0f);
+    const auto zeroY = graph.getCentreY();
+    g.setColour(colours::grid);
+    g.drawHorizontalLine(static_cast<int>(zeroY), graph.getX(), graph.getRight());
+
+    juce::Path curve;
+    for (int band = 0; band < 6; ++band)
+    {
+        const auto index = static_cast<size_t>(band);
+        const auto frequency = parameter(params::eqBandFrequency[index]);
+        const auto gain = parameter(params::eqBandGain[index]);
+        const auto enabled = parameter(params::eqBandEnabled[index]) > 0.5f && parameter(params::eqEnabled) > 0.5f;
+        const auto x = juce::jmap(std::log10(juce::jlimit(20.0f, 20000.0f, frequency)),
+                                  std::log10(20.0f), std::log10(20000.0f), graph.getX(), graph.getRight());
+        const auto y = juce::jmap(juce::jlimit(-12.0f, 12.0f, gain), 12.0f, -12.0f,
+                                  graph.getY(), graph.getBottom());
+        if (band == 0) curve.startNewSubPath(x, y); else curve.lineTo(x, y);
+        g.setColour(enabled ? colours::green : colours::muted);
+        g.fillEllipse(juce::Rectangle<float>(7.0f, 7.0f).withCentre({x, y}));
+    }
+    g.setColour(colours::green.withAlpha(parameter(params::eqEnabled) > 0.5f ? 0.9f : 0.3f));
+    g.strokePath(curve, juce::PathStrokeType(1.7f, juce::PathStrokeType::curved,
+                                             juce::PathStrokeType::rounded));
+    g.setColour(colours::textSecondary);
+    g.setFont(juce::FontOptions(8.5f));
+    g.drawText("20 Hz", static_cast<int>(graph.getX()), static_cast<int>(graph.getBottom()) + 1,
+               38, 12, juce::Justification::centredLeft);
+    g.drawText("20 kHz", static_cast<int>(graph.getRight()) - 42, static_cast<int>(graph.getBottom()) + 1,
+               42, 12, juce::Justification::centredRight);
+}
+
+void ControlStripDisplay::drawThresholds(juce::Graphics& g, juce::Rectangle<float> area)
+{
+    g.setColour(colours::text);
+    g.setFont(juce::FontOptions(10.5f, juce::Font::bold));
+    g.drawText("BAND THRESHOLDS", area.removeFromTop(17.0f).toNearestInt(), juce::Justification::centredLeft);
+    auto graph = area.reduced(6.0f, 3.0f).withTrimmedBottom(14.0f);
+    const auto slotWidth = graph.getWidth() / 4.0f;
+    for (int band = 0; band < 4; ++band)
+    {
+        const auto index = static_cast<size_t>(band);
+        const auto threshold = parameter(params::bandThreshold[index]);
+        const auto reduction = meters.bandReductionDb[index].load(std::memory_order_relaxed);
+        const auto enabled = parameter(params::bandEnabled[index]) > 0.5f && parameter(params::multibandEnabled) > 0.5f;
+        const auto centreX = graph.getX() + (static_cast<float>(band) + 0.5f) * slotWidth;
+        auto track = juce::Rectangle<float>(juce::jmax(6.0f, slotWidth - 12.0f), graph.getHeight())
+                         .withCentre({centreX, graph.getCentreY()});
+        g.setColour(colours::meterTrack);
+        g.fillRoundedRectangle(track, 2.5f);
+        const auto thresholdY = juce::jmap(juce::jlimit(-50.0f, 0.0f, threshold), 0.0f, -50.0f,
+                                           track.getY(), track.getBottom());
+        g.setColour(enabled ? colours::amber.withAlpha(0.32f) : colours::muted.withAlpha(0.2f));
+        g.fillRoundedRectangle(track.withTop(thresholdY), 2.5f);
+        g.setColour(enabled ? colours::amber : colours::muted);
+        g.fillRect(track.getX() - 1.0f, thresholdY, track.getWidth() + 2.0f, 1.5f);
+        const auto reductionHeight = track.getHeight() * juce::jlimit(0.0f, 1.0f, reduction / 18.0f);
+        g.setColour(colours::red.withAlpha(enabled ? 0.72f : 0.2f));
+        g.fillRoundedRectangle(track.withHeight(reductionHeight), 2.5f);
+        g.setColour(colours::textSecondary);
+        g.setFont(juce::FontOptions(8.5f, juce::Font::bold));
+        g.drawText("B" + juce::String(band + 1), static_cast<int>(centreX - slotWidth * 0.5f),
+                   static_cast<int>(graph.getBottom()) + 1, static_cast<int>(slotWidth), 12,
+                   juce::Justification::centred);
+    }
+}
+
+void ControlStripDisplay::drawHarmonics(juce::Graphics& g, juce::Rectangle<float> area)
+{
+    g.setColour(colours::text);
+    g.setFont(juce::FontOptions(10.5f, juce::Font::bold));
+    g.drawText("HARMONIC SHAPE", area.removeFromTop(17.0f).toNearestInt(), juce::Justification::centredLeft);
+    auto graph = area.reduced(6.0f, 3.0f).withTrimmedBottom(16.0f);
+    const auto driveDb = parameter(params::enhancerDriveDb);
+    const auto mix = parameter(params::enhancerMixPercent) * 0.01f;
+    const auto tone = parameter(params::enhancerTonePercent) * 0.01f;
+    const auto drive = juce::Decibels::decibelsToGain(driveDb);
+    juce::Path transfer;
+    for (int point = 0; point <= 40; ++point)
+    {
+        const auto normalisedX = static_cast<float>(point) / 40.0f;
+        const auto input = juce::jmap(normalisedX, -1.0f, 1.0f);
+        const auto shaped = std::tanh(input * drive * (1.0f + 0.18f * tone)) / juce::jmax(1.0f, drive);
+        const auto output = juce::jmap(mix, input, shaped);
+        const auto x = juce::jmap(normalisedX, graph.getX(), graph.getRight());
+        const auto y = juce::jmap(output, 1.0f, -1.0f, graph.getY(), graph.getBottom());
+        if (point == 0) transfer.startNewSubPath(x, y); else transfer.lineTo(x, y);
+    }
+    g.setColour(colours::grid);
+    g.drawLine(graph.getX(), graph.getBottom(), graph.getRight(), graph.getY(), 1.0f);
+    g.setColour(parameter(params::enhancerEnabled) > 0.5f ? colours::purple : colours::muted);
+    g.strokePath(transfer, juce::PathStrokeType(2.0f, juce::PathStrokeType::curved,
+                                                juce::PathStrokeType::rounded));
+    g.setColour(colours::textSecondary);
+    g.setFont(juce::FontOptions(8.5f));
+    g.drawFittedText("DRIVE " + juce::String(driveDb, 1) + " dB   MIX " + juce::String(mix * 100.0f, 0) + "%",
+                     area.withTrimmedTop(area.getHeight() - 15.0f).toNearestInt(),
+                     juce::Justification::centred, 1, 0.72f);
+}
+
+void ControlStripDisplay::drawStereoAndBass(juce::Graphics& g, juce::Rectangle<float> area)
+{
+    g.setColour(colours::text);
+    g.setFont(juce::FontOptions(10.5f, juce::Font::bold));
+    g.drawText("STEREO + LOW END", area.removeFromTop(17.0f).toNearestInt(), juce::Justification::centredLeft);
+    auto graph = area.reduced(6.0f, 3.0f).withTrimmedBottom(17.0f);
+    const auto width = parameter(params::stereoWidthPercent);
+    const auto balance = parameter(params::stereoBalancePercent);
+    const auto bassFrequency = parameter(params::monoBassFrequencyHz);
+    const auto correlation = meters.correlation.load(std::memory_order_relaxed);
+    const auto fieldWidth = graph.getWidth() * juce::jmap(juce::jlimit(0.0f, 150.0f, width), 0.0f, 150.0f, 0.18f, 0.92f);
+    const auto fieldHeight = graph.getHeight() * juce::jmap(juce::jlimit(-1.0f, 1.0f, correlation),
+                                                            -1.0f, 1.0f, 0.92f, 0.28f);
+    const auto field = juce::Rectangle<float>(fieldWidth, fieldHeight).withCentre(graph.getCentre());
+    g.setColour(colours::grid);
+    g.drawVerticalLine(static_cast<int>(graph.getCentreX()), graph.getY(), graph.getBottom());
+    g.drawHorizontalLine(static_cast<int>(graph.getCentreY()), graph.getX(), graph.getRight());
+    g.setColour(correlation < 0.0f ? colours::red : colours::cyan);
+    g.drawEllipse(field, 2.0f);
+    const auto balanceX = juce::jmap(juce::jlimit(-100.0f, 100.0f, balance), -100.0f, 100.0f,
+                                     graph.getX(), graph.getRight());
+    g.fillEllipse(juce::Rectangle<float>(5.0f, 5.0f).withCentre({balanceX, graph.getCentreY()}));
+    const auto bassPosition = juce::jmap(juce::jlimit(40.0f, 250.0f, bassFrequency), 40.0f, 250.0f,
+                                         graph.getX(), graph.getRight());
+    g.setColour(parameter(params::monoBassEnabled) > 0.5f ? colours::green : colours::muted);
+    g.fillRoundedRectangle(juce::Rectangle<float>(graph.getX(), graph.getBottom() - 3.0f,
+                                                   bassPosition - graph.getX(), 3.0f), 1.5f);
+    g.setColour(colours::textSecondary);
+    g.setFont(juce::FontOptions(8.5f));
+    g.drawFittedText("WIDTH " + juce::String(width, 0) + "%   BASS < " + juce::String(bassFrequency, 0) + " Hz",
+                     area.withTrimmedTop(area.getHeight() - 15.0f).toNearestInt(),
+                     juce::Justification::centred, 1, 0.7f);
+}
+
+void ControlStripDisplay::paint(juce::Graphics& g)
+{
+    const auto card = getLocalBounds().toFloat().reduced(1.0f);
+    juce::ColourGradient gradient(colours::panelElevated, card.getX(), card.getY(),
+                                  colours::panel, card.getX(), card.getBottom(), false);
+    g.setGradientFill(gradient);
+    g.fillRoundedRectangle(card, 10.0f);
+    g.setColour(colours::border);
+    g.drawRoundedRectangle(card, 10.0f, 1.0f);
+
+    auto area = getLocalBounds().toFloat().reduced(11.0f);
+    auto heading = area.removeFromTop(38.0f);
+    g.setColour(colours::text);
+    g.setFont(juce::FontOptions(13.5f, juce::Font::bold));
+    g.drawText("CONTROL STRIP ACTIVITY", heading.removeFromTop(19.0f).toNearestInt(), juce::Justification::centredLeft);
+    g.setColour(colours::textSecondary);
+    g.setFont(juce::FontOptions(9.5f));
+    g.drawText("LIVE PARAMETER OVERVIEW", heading.toNearestInt(), juce::Justification::centredLeft);
+
+    area.removeFromTop(3.0f);
+    const auto gap = 6.0f;
+    const auto rowHeight = (area.getHeight() - gap) * 0.5f;
+    auto top = area.removeFromTop(rowHeight);
+    area.removeFromTop(gap);
+    auto bottom = area;
+    const auto columnWidth = (top.getWidth() - gap) * 0.5f;
+    auto eqArea = top.removeFromLeft(columnWidth);
+    top.removeFromLeft(gap);
+    auto thresholdArea = top;
+    auto harmonicArea = bottom.removeFromLeft(columnWidth);
+    bottom.removeFromLeft(gap);
+    auto stereoArea = bottom;
+
+    for (const auto panel : {eqArea, thresholdArea, harmonicArea, stereoArea})
+    {
+        g.setColour(colours::background.withAlpha(0.48f));
+        g.fillRoundedRectangle(panel, 6.0f);
+        g.setColour(colours::grid);
+        g.drawRoundedRectangle(panel, 6.0f, 1.0f);
+    }
+    drawEqualizer(g, eqArea.reduced(7.0f, 5.0f));
+    drawThresholds(g, thresholdArea.reduced(7.0f, 5.0f));
+    drawHarmonics(g, harmonicArea.reduced(7.0f, 5.0f));
+    drawStereoAndBass(g, stereoArea.reduced(7.0f, 5.0f));
+}
+
 AuroraBroadcastProcessorEditor::AuroraBroadcastProcessorEditor(AuroraBroadcastProcessor& p)
     : AudioProcessorEditor(p), processor(p),
       spectrum(p.parameters, p.engine().inputAnalyzer(), p.engine().outputAnalyzer(),
                [this] { return processor.getSampleRate(); }),
+      controlStripDisplay(p.parameters, p.engine().meters()),
       meterDisplay(p.engine().meters())
 {
     processor.engine().setAnalyzerConsumerActive(true);
@@ -330,7 +533,8 @@ AuroraBroadcastProcessorEditor::AuroraBroadcastProcessorEditor(AuroraBroadcastPr
     bButton.setClickingTogglesState(true);
     juce::Component* components[] { &title, &presetLabel, &compareLabel, &presetBox, &previous, &next,
                                     &save, &saveAs, &aButton, &bButton, &aToB, &bToA, &reset,
-                                    &advanced, &info, &bypass, &spectrum, &meterDisplay, &viewport, &footer };
+                                    &advanced, &info, &bypass, &spectrum, &controlStripDisplay,
+                                    &meterDisplay, &viewport, &footer };
     for (auto* component : components) addAndMakeVisible(component);
 
     viewport.setViewedComponent(&controlContent, false);
@@ -438,17 +642,17 @@ AuroraBroadcastProcessorEditor::AuroraBroadcastProcessorEditor(AuroraBroadcastPr
         addToggle(params::bandSolo[static_cast<size_t>(band)], "Solo Dynamics Band " + number, "Audition compressor band " + number + " by itself.");
     }
 
-    beginSection("Harmonic enhancement and stereo",
-                 "Add controlled density, adjust the stereo image, and protect mono compatibility.", colours::green);
+    beginSection("Harmonics, stereo, and low-end preservation",
+                 "Add controlled density, adjust the stereo image, and preserve stable center bass.", colours::green);
     addKnob(params::enhancerDriveDb, "Enhancer Drive", "Harmonic density drive.");
     addKnob(params::enhancerMixPercent, "Enhancer Mix", "Harmonic wet/dry mix.");
     addKnob(params::enhancerTonePercent, "Enhancer Tone", "Harmonic brightness balance.");
     addKnob(params::stereoWidthPercent, "Stereo Width", "Mid/side stereo width.");
     addKnob(params::stereoBalancePercent, "Stereo Balance", "Left/right stereo balance.");
-    addKnob(params::monoBassFrequencyHz, "Mono Bass Frequency", "Frequency below which side bass is reduced.");
+    addKnob(params::monoBassFrequencyHz, "Low-End Preservation Cutoff", "Preserve center bass by filtering low-frequency side energy below this cutoff.");
     addToggle(params::enhancerEnabled, "Enable Harmonic Enhancer", "Enable harmonic enhancement.");
     addToggle(params::stereoEnabled, "Enable Stereo Processing", "Enable stereo width and balance processing.");
-    addToggle(params::monoBassEnabled, "Enable Mono Bass", "Reduce low-frequency side energy.");
+    addToggle(params::monoBassEnabled, "Enable Low-End Preservation", "Keep center bass intact while filtering unstable low-frequency side energy.");
     addToggle(params::correlationProtectionEnabled, "Enable Correlation Protection", "Reduce widening when stereo correlation becomes unsafe.");
 
     beginSection("Peak control and output",
@@ -585,10 +789,13 @@ void AuroraBroadcastProcessorEditor::resized()
     area.removeFromBottom(6);
 
     auto upper = advancedMode
-                     ? area.removeFromTop(juce::jlimit(210, 360, static_cast<int>(area.getHeight() * 0.48f)))
+                     ? area.removeFromTop(juce::jlimit(240, 380, static_cast<int>(area.getHeight() * 0.50f)))
                      : area;
-    const auto meterWidth = juce::jlimit(220, 310, upper.getWidth() / 5);
+    const auto meterWidth = juce::jlimit(210, 285, upper.getWidth() / 5);
     meterDisplay.setBounds(upper.removeFromRight(meterWidth));
+    upper.removeFromRight(10);
+    const auto overviewWidth = juce::jlimit(300, 370, upper.getWidth() / 3);
+    controlStripDisplay.setBounds(upper.removeFromRight(overviewWidth));
     upper.removeFromRight(10);
     spectrum.setBounds(upper);
 
@@ -628,10 +835,16 @@ bool AuroraBroadcastProcessorEditor::isLayoutValidForTesting() const noexcept
             if (first->getBounds().intersects(headerComponents[secondIndex]->getBounds())) return false;
     }
     if (spectrum.getWidth() < 300 || spectrum.getHeight() < 180 || meterDisplay.getWidth() < 200
-        || spectrum.getBounds().intersects(meterDisplay.getBounds()) || spectrum.getBounds().intersects(footer.getBounds())
+        || controlStripDisplay.getWidth() < 280 || controlStripDisplay.getHeight() < 180
+        || spectrum.getBounds().intersects(controlStripDisplay.getBounds())
+        || spectrum.getBounds().intersects(meterDisplay.getBounds())
+        || controlStripDisplay.getBounds().intersects(meterDisplay.getBounds())
+        || spectrum.getBounds().intersects(footer.getBounds())
+        || controlStripDisplay.getBounds().intersects(footer.getBounds())
         || meterDisplay.getBounds().intersects(footer.getBounds())) return false;
     if (advancedMode && (viewport.getWidth() <= 0 || viewport.getHeight() <= 0
                          || viewport.getBounds().intersects(spectrum.getBounds())
+                         || viewport.getBounds().intersects(controlStripDisplay.getBounds())
                          || viewport.getBounds().intersects(meterDisplay.getBounds()))) return false;
     if (advancedMode)
         for (const auto& section : sections)
